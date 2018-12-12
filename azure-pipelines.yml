@@ -1,7 +1,7 @@
 variables:
   dockerId: methackcr
   dockerRepoName: methack-ui
-  azureSubscription: MSDN
+  azureSubscription: Azure
   webAppName: methack
   dockerRegistry: $(dockerId).azurecr.io
   imageName: $(dockerRegistry)/$(dockerRepoName)
