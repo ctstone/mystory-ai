@@ -1,0 +1,91 @@
+variables:
+  dockerId: methackcr
+  dockerRepoName: methack-ui
+  azureSubscription: MSDN
+  webAppName: methack
+  dockerRegistry: $(dockerId).azurecr.io
+  imageName: $(dockerRegistry)/$(dockerRepoName)
+  buildArtifactName: Build
+
+trigger:
+  - master
+
+jobs:
+
+  # BUILD JOB
+  - job: Build
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+
+      # Use Node 8.x
+      - task: NodeTool@0
+        inputs:
+          versionSpec: 8.x
+
+      # Build the node app
+      - script: npm install
+
+      # Copy files to staging, excluding git and npm files
+      - task: CopyFiles@2
+        inputs:
+          contents: |
+            **/*
+            !.git/**
+            !node_modules/**
+          targetFolder: $(Build.ArtifactStagingDirectory)
+      
+      # Publish source+build files
+      - task: PublishPipelineArtifact@0
+        inputs:
+          artifactName: $(buildArtifactName)
+          targetPath: $(Build.ArtifactStagingDirectory)
+
+  # DOCKER JOB
+  - job: Docker
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+
+      # Sources are not needed by this job
+      - checkout: none
+
+      # Download the build
+      - task: DownloadPipelineArtifact@0
+        inputs:
+          artifactName: $(buildArtifactName)
+          targetPath: $(Build.ArtifactStagingDirectory)/$(buildArtifactName)
+
+      # Build and push the docker image
+      - script: |
+          docker build -t $(imageName) .
+          docker tag $(imageName) $(imageName):$(Build.BuildId)
+          docker login -u $(dockerId) -p $pswd $(dockerRegistry)
+          docker push $(imageName)
+          docker push $(imageName):$(Build.BuildId)
+        workingDirectory: $(Build.ArtifactStagingDirectory)/$(buildArtifactName)
+        env:
+          pswd: $(dockerPassword)
+
+  # WEB JOB
+  # - job: Web
+  #   dependsOn: Docker
+  #   pool:
+  #     vmImage: ubuntu-16.04
+  #   steps:
+
+  #     # Sources are not needed by this job
+  #     - checkout: none
+
+  #     # Deploy web app
+  #     - task: AzureRmWebAppDeployment@4
+  #       inputs:
+  #         connectionType: AzureRM
+  #         azureSubscription: $(azureSubscription)
+  #         appType: webAppContainer
+  #         webAppName: $(webAppName)
+  #         dockerNamespace: $(dockerRegistry)
+  #         dockerRepository: $(dockerRepoName)
+  #         dockerImageTag: $(Build.BuildId)
