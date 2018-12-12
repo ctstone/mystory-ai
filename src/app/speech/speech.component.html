@@ -1,3 +1,19 @@
-<p>
-  speech works!
-</p>
+<ng-container *ngIf="connected else showDisconnected">
+  <button class="btn btn-large btn-primary" (click)="listen()" [disabled]="state">
+    {{state || 'Capture Speech'}}
+  </button>
+</ng-container>
+
+<ng-container *ngIf="recording">
+  <hr>
+  <p class="lead"> <i>{{recording.text || '...'}}</i> </p>
+</ng-container>
+
+<ng-template #showDisconnected>
+  <button type="button" class="btn btn-primary mr-2" [disabled]="connecting" (click)="connect()">Connect</button>
+  <span class="small text-muted" *ngIf="!connecting else showConnecting">DISCONNECTED</span>
+</ng-template>
+
+<ng-template #showConnecting>
+  <span class="small text-muted">CONNECTING...</span>
+</ng-template>

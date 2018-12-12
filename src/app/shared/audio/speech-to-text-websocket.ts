@@ -57,11 +57,14 @@ export class SpeechToTextWebsocket {
     const sentConfig = deferred<void>();
 
     this.connectionId = createUUID();
+    const temp = endpoint.includes('?') ? '&' : '?';
     const url = endpoint.replace('https:', 'wss:')
-      + `&Ocp-Apim-Subscription-Key=${key}`
+      + temp
+      + `Ocp-Apim-Subscription-Key=${key}`
       + `&X-ConnectionId=${this.connectionId}`;
     this.ws = new WebSocket(url);
     this.ws.addEventListener('open', () => {
+      console.log('OPENED');
       try {
         this.sendSpeechConfig();
         sentConfig.resolve();
