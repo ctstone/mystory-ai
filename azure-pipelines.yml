@@ -70,22 +70,22 @@ jobs:
           pswd: $(dockerPassword)
 
   # WEB JOB
-  # - job: Web
-  #   dependsOn: Docker
-  #   pool:
-  #     vmImage: ubuntu-16.04
-  #   steps:
+  - job: Web
+    dependsOn: Docker
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
 
-  #     # Sources are not needed by this job
-  #     - checkout: none
+      # Sources are not needed by this job
+      - checkout: none
 
-  #     # Deploy web app
-  #     - task: AzureRmWebAppDeployment@4
-  #       inputs:
-  #         connectionType: AzureRM
-  #         azureSubscription: $(azureSubscription)
-  #         appType: webAppContainer
-  #         webAppName: $(webAppName)
-  #         dockerNamespace: $(dockerRegistry)
-  #         dockerRepository: $(dockerRepoName)
-  #         dockerImageTag: $(Build.BuildId)
+      # Deploy web app
+      - task: AzureRmWebAppDeployment@4
+        inputs:
+          connectionType: AzureRM
+          azureSubscription: $(azureSubscription)
+          appType: webAppContainer
+          webAppName: $(webAppName)
+          dockerNamespace: $(dockerRegistry)
+          dockerRepository: $(dockerRepoName)
+          dockerImageTag: $(Build.BuildId)
