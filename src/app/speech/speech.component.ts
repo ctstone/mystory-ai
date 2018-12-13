@@ -124,7 +124,7 @@ export class SpeechComponent implements OnInit {
 
   private navigateToQuery(query: string) {
     return this.router.navigate(
-      [''],
+      ['.'],
       {
         relativeTo: this.route,
         queryParams: { q: query },
