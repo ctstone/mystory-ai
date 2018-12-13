@@ -22,6 +22,7 @@ export class SpeechComponent implements OnInit {
   useKeyPhraseControl = new FormControl(true);
   keyPhrases: any;
   searchResults: any;
+  searching: boolean;
   tag: string;
 
   get connected() { return this.stt.connected; }
@@ -40,7 +41,6 @@ export class SpeechComponent implements OnInit {
   private context = new AudioContext();
   private stt = new SpeechRecorder(this.context, 16000);
   private startingMic: boolean;
-  private searching: boolean;
 
   constructor(
     private config: ConfigService,
