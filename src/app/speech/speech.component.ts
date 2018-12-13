@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { SpeechRecorder, Recording } from '../shared/audio/speech-recorder';
-import { tap, takeLast, flatMap, filter } from 'rxjs/operators';
-import { ConfigService } from '../shared/config.service';
-import { TextAnalyticsService } from '../shared/text-analytics.service';
-import { SearchService } from '../shared/search.service';
 import { FormControl } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
+import { tap, takeLast, flatMap, filter } from 'rxjs/operators';
+
+import { SpeechRecorder } from '../shared/audio/speech-recorder';
+import { ConfigService } from '../shared/config.service';
+import { TextAnalyticsService } from '../shared/text-analytics.service';
+import { SearchService } from '../shared/search.service';
 
 const IMAGE_TYPE = 'LowResolutionImages2'; // PrimaryImage
 
@@ -18,6 +19,7 @@ const IMAGE_TYPE = 'LowResolutionImages2'; // PrimaryImage
 export class SpeechComponent implements OnInit {
 
   inputControl = new FormControl();
+  useKeyPhraseControl = new FormControl(true);
   keyPhrases: any;
   searchResults: any;
   tag: string;
@@ -44,7 +46,6 @@ export class SpeechComponent implements OnInit {
     private config: ConfigService,
     private text: TextAnalyticsService,
     private azsearch: SearchService,
-    private sanitizer: DomSanitizer,
     private route: ActivatedRoute,
     private router: Router,
   ) { }
@@ -56,7 +57,7 @@ export class SpeechComponent implements OnInit {
       .pipe(
         tap((qp) => this.inputControl.setValue(qp.q)),
         filter((qp) => qp.q),
-        flatMap((qp) => this.keyPhraseSearch(qp.q))
+        flatMap((qp) => this.applyQuery(qp.q)),
       )
       .subscribe();
 
@@ -97,11 +98,27 @@ export class SpeechComponent implements OnInit {
 
   search() {
     const text: string = this.inputControl.value;
-    return this.navigateToQuery(text);
+    return text === this.route.snapshot.queryParams.q
+      ? this.applyQuery(text).subscribe()
+      : this.navigateToQuery(text);
+  }
+
+  private applyQuery(query: string) {
+    if (!this.useKeyPhraseControl.value) {
+      this.keyPhrases = null;
+    }
+    return this.useKeyPhraseControl.value
+      ? this.keyPhraseSearch(query)
+      : this._search({ search: query });
   }
 
   private navigateToQuery(query: string) {
-    return this.router.navigate([''], { relativeTo: this.route, queryParams: { q: query } });
+    return this.router.navigate(
+      [''],
+      {
+        relativeTo: this.route,
+        queryParams: { q: query },
+      });
   }
 
   private searchTag(tag: string) {
@@ -131,7 +148,8 @@ export class SpeechComponent implements OnInit {
 
   private _search(query: any) {
     this.searching = true;
-    return this.azsearch.query('artworks7', query)
+    this.searchResults = null;
+    return this.azsearch.query('artworks8', query)
       .pipe(
         tap((resp) => {
           this.searchResults = resp;
