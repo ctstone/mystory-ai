@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { tap, takeLast, flatMap, filter } from 'rxjs/operators';
 
@@ -18,10 +18,13 @@ const IMAGE_TYPE = 'LowResolutionImages2'; // PrimaryImage
 })
 export class StoryComponent implements OnInit {
 
+  @ViewChild('imageViewer')
+  imageViewer: ElementRef<HTMLElement>;
+
   inputControl = new FormControl();
   useKeyPhraseControl = new FormControl(false);
   keyPhrases: any;
-  searchResults: any;
+  searchResults: any[] = [];
   searching: boolean;
   tag: string;
 
@@ -89,15 +92,17 @@ export class StoryComponent implements OnInit {
   private _listen() {
     console.log('LISTEN', this.startingMic);
     this.inputControl.reset();
-    return this.stt.record(10000)
+    return this.stt.record(4500)
       .pipe(
         tap((recording) => this.inputControl.setValue(recording.text)),
         takeLast(1),
-        // filter((recording) => !!recording.text),
-        tap(() => {
-          this.applyQuery(this.inputControl.value).subscribe();
+        flatMap((recording) => {
+          if (recording.text) {
+            this.applyQuery(this.inputControl.value).subscribe();
+          }
+
+          return this.stopped ? of(null) : this._listen();
         }),
-        flatMap(() => !this.stopped ? this._listen() : of(null))
       );
   }
 
@@ -107,13 +112,12 @@ export class StoryComponent implements OnInit {
     }
     return this.useKeyPhraseControl.value
       ? this.keyPhraseSearch(query)
-      : this._search({ search: query, filter: 'hasPrimaryImage' });
+      : this._search({ search: query, filter: 'hasPrimaryImage', top: 4 });
   }
 
   private keyPhraseSearch(text: string) {
     this.searching = true;
     this.keyPhrases = null;
-    this.searchResults = null;
     return this.text.keyPhrases(text)
       .pipe(
         tap((resp) => this.keyPhrases = resp),
@@ -124,19 +128,18 @@ export class StoryComponent implements OnInit {
             .map((x: any) => `"${x}"`)
             .join(' AND '),
           filter: 'hasPrimaryImage',
+          top: 4,
         })),
       );
   }
 
   private _search(query: any) {
     this.searching = true;
-    this.searchResults = null;
     return this.azsearch.query('artworks8', query)
       .pipe(
         tap((resp) => {
-          this.searchResults = resp;
           this.searching = false;
-          this.searchResults.value.forEach((doc: any) => {
+          resp.value.forEach((doc: any) => {
             if (doc.primaryImageUrl) {
               doc.$primaryImageUrl = 'https://airotationstore.blob.core.windows.net/met-artworks/'
                 + `artwork_images/${IMAGE_TYPE}/${doc.id}.jpg`
@@ -144,6 +147,20 @@ export class StoryComponent implements OnInit {
                 + '&sig=wKy6JcE%2FD0j2H%2BXByasn2YK5fstVReHeurgN12OKV3c%3D';
             }
           });
+          // this.searchResults.splice(0, 0, ...resp.value);
+          this.searchResults = this.searchResults.concat(resp.value);
+          setTimeout(() => {
+            const images = this.imageViewer.nativeElement
+              .querySelectorAll('img');
+            const lastImage = images.item(images.length - 1);
+            this.imageViewer.nativeElement.scrollBy({
+              left: this.imageViewer.nativeElement.scrollWidth,
+              behavior: 'smooth',
+            });
+            // lastImage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // // console.log(lastImage);
+            window['temp'] = lastImage;
+          }, 300);
         }),
       );
   }

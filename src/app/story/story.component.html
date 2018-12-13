@@ -3,9 +3,8 @@
     <div class="input-group">
       <input type="search" class="form-control" [formControl]="inputControl" [placeholder]="getQueryPlaceholder()">
       <div class="input-group-append">
-        <button type="button" class="btn btn-outline-secondary" (click)="listen()" [disabled]="connecting" *ngIf="(connected || connecting) else showDisconnected">
-          <i class="far fa-microphone"></i>
-        </button>
+        <button class="btn btn-danger" *ngIf="listening else showConnected" (click)="stop()">STOP</button>
+        
       </div>
     </div>
   </div>
@@ -20,28 +19,36 @@
       </span>
     </ng-container>
 
-    <button class="btn btn-danger" *ngIf="listening" (click)="stop()">STOP</button>
+    
   </div>
 </form>
+
+
+
+<ng-container *ngIf="searchResults.length">
+  <h3 *ngIf="keyPhrases || tag">
+    <small *ngIf="keyPhrases">{{keyPhrases.documents[0].keyPhrases}}</small>
+    <small *ngIf="tag">{{tag}}</small>
+  </h3>
+  <p class="lead" *ngIf="searchResults.length === 0">No matches</p>
+  <div #imageViewer class="scrolling-wrapper" style="overflow-x: scroll; overflow-y: auto; white-space: nowrap;">
+    <div class="card" style="display: inline-block;" *ngFor="let doc of searchResults; let i = index">
+      <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.id}}" *ngIf="doc.$primaryImageUrl">
+        <img class="card-img-top" style="height:400px;width: auto;" [src]="doc.$primaryImageUrl">
+      </a>
+    </div>
+  </div>
+</ng-container>
 
 <ng-container *ngIf="searching">
   <p class="lead">Searching...</p>
 </ng-container>
 
-<ng-container *ngIf="searchResults">
-  <h3 *ngIf="keyPhrases || tag">
-    <small *ngIf="keyPhrases">{{keyPhrases.documents[0].keyPhrases}}</small>
-    <small *ngIf="tag">{{tag}}</small>
-  </h3>
-  <p class="lead" *ngIf="searchResults.value.length === 0">No matches</p>
-  <div class="scrolling-wrapper" style="overflow-x: scroll; overflow-y: hidden; white-space: nowrap;">
-    <div class="card" style="display: inline-block;" *ngFor="let doc of searchResults.value; let i = index">
-      <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.id}}" (click)="onDocumentClick(i, doc, $event)" *ngIf="doc.$primaryImageUrl">
-        <img class="card-img-top" [src]="doc.$primaryImageUrl">
-      </a>
-    </div>
-  </div>
-</ng-container>
+<ng-template #showConnected>
+  <button type="button" class="btn btn-outline-secondary" (click)="listen()" [disabled]="connecting" *ngIf="(connected || connecting) else showDisconnected">
+    <i class="far fa-microphone"></i>
+  </button>
+</ng-template>
 
 <ng-template #showDisconnected>
   <button type="button" class="btn btn-success" (click)="connect()">Connect</button>
