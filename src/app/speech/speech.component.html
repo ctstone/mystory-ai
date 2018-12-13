@@ -19,6 +19,7 @@
 
 <ng-container *ngIf="searchResults">
   <h3>Results <small>{{keyPhrases.documents[0].keyPhrases}}</small></h3>
+  <p class="lead" *ngIf="searchResults.value.length === 0">No matches</p>
   <div class="card-columns">
     <div class="card" *ngFor="let doc of searchResults.value">
       <img class="card-img-top" [src]="doc.$primaryImageUrl">
@@ -38,7 +39,6 @@
       </div>
     </div>
   </div>
-  <!-- {{searchResults.value|json}} -->
 </ng-container>
 
 <ng-template #showDisconnected>
