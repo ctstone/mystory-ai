@@ -8,6 +8,8 @@ import { FormControl } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 
+const IMAGE_TYPE = 'LowResolutionImages2'; // PrimaryImage
+
 @Component({
   selector: 'app-speech',
   templateUrl: './speech.component.html',
@@ -66,7 +68,7 @@ export class SpeechComponent implements OnInit {
     switch (this.state) {
       case 'WAIT': return 'WAIT';
       case 'Listening': return 'Listening';
-      default: return 'Type or query or use click the mic to use your voice';
+      default: return 'Type or query or click the mic to use your voice';
     }
   }
 
@@ -102,14 +104,20 @@ export class SpeechComponent implements OnInit {
         flatMap((resp) => this.azsearch.query('artworks7', {
           queryType: 'full',
           search: resp.documents[0].keyPhrases
-            .map((x) => `"${x}"`)
+            .map((x: any) => `"${x}"`)
             .join(' AND '),
         })),
         tap((resp) => {
           this.searchResults = resp;
           this.searching = false;
           this.searchResults.value.forEach((doc) => {
-            doc.$primaryImageUrl = this.sanitizer.bypassSecurityTrustUrl(doc.primaryImageUrl);
+            if (doc.primaryImageUrl) {
+              // doc.$primaryImageUrl = this.sanitizer.bypassSecurityTrustUrl(doc.primaryImageUrl);
+              doc.$primaryImageUrl = 'https://airotationstore.blob.core.windows.net/met-artworks/'
+                + `artwork_images/${IMAGE_TYPE}/${doc.id}.jpg`
+                + '?st=2018-12-13T04%3A23%3A44Z&se=2118-12-14T04%3A23%3A00Z&sp=rl&sv=2018-03-28&sr=c'
+                + '&sig=wKy6JcE%2FD0j2H%2BXByasn2YK5fstVReHeurgN12OKV3c%3D';
+            }
           });
         }),
       );

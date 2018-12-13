@@ -22,7 +22,7 @@
   <p class="lead" *ngIf="searchResults.value.length === 0">No matches</p>
   <div class="card-columns">
     <div class="card" *ngFor="let doc of searchResults.value">
-      <img class="card-img-top" [src]="doc.$primaryImageUrl">
+      <img class="card-img-top" *ngIf="doc.$primaryImageUrl" [src]="doc.$primaryImageUrl">
       <div class="card-body">
         <h5 class="card-title">{{doc.title}}</h5>
         <p class="card-text">
