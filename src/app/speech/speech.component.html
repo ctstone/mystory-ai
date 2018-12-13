@@ -18,13 +18,21 @@
 </ng-container>
 
 <ng-container *ngIf="searchResults">
-  <h3>Results <small>{{keyPhrases.documents[0].keyPhrases}}</small></h3>
+  <h3>
+    Results
+    <small *ngIf="keyPhrases">{{keyPhrases.documents[0].keyPhrases}}</small>
+    <small *ngIf="tag">{{tag}}</small>
+  </h3>
   <p class="lead" *ngIf="searchResults.value.length === 0">No matches</p>
   <div class="card-columns">
     <div class="card" *ngFor="let doc of searchResults.value">
-      <img class="card-img-top" *ngIf="doc.$primaryImageUrl" [src]="doc.$primaryImageUrl">
+      <a href="http://www.metmuseum.org/art/collection/search/{{doc.id}}" *ngIf="doc.$primaryImageUrl">
+        <img class="card-img-top" [src]="doc.$primaryImageUrl">
+      </a>
       <div class="card-body">
-        <h5 class="card-title">{{doc.title}}</h5>
+        <h5 class="card-title">
+          <a href="http://www.metmuseum.org/art/collection/search/{{doc.id}}">{{doc.title}}</a>
+        </h5>
         <p class="card-text">
           {{doc.medium}}<ng-container *ngIf="doc.medium && doc.objectDate">, </ng-container>
           <small class="text-muted">{{doc.objectDate}}</small>
@@ -34,7 +42,7 @@
           <span class="small text-muted ml-2" *ngIf="doc.creditLine">from {{doc.creditLine}}</span>
         </p>
         <p class="card-text">
-          <span class="badge badge-secondary mr-2" *ngFor="let tag of doc.tags">{{tag}}</span>
+          <a class="badge badge-secondary mr-2" routerLink="." [queryParams]="{tag:tag}" *ngFor="let tag of doc.tags">{{tag}}</a>
         </p>
       </div>
     </div>

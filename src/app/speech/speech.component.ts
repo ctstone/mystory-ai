@@ -20,6 +20,7 @@ export class SpeechComponent implements OnInit {
   inputControl = new FormControl();
   keyPhrases: any;
   searchResults: any;
+  tag: string;
 
   get connected() { return this.stt.connected; }
   get connecting() { return this.stt.state === 'Connecting'; }
@@ -55,7 +56,15 @@ export class SpeechComponent implements OnInit {
       .pipe(
         tap((qp) => this.inputControl.setValue(qp.q)),
         filter((qp) => qp.q),
-        flatMap((qp) => this._search(qp.q))
+        flatMap((qp) => this.keyPhraseSearch(qp.q))
+      )
+      .subscribe();
+
+    this.route.queryParams
+      .pipe(
+        filter((qp) => this.tag = qp.tag),
+        filter((qp) => qp.tag),
+        flatMap((qp) => this.searchTag(qp.tag))
       )
       .subscribe();
   }
@@ -95,18 +104,35 @@ export class SpeechComponent implements OnInit {
     return this.router.navigate([''], { relativeTo: this.route, queryParams: { q: query } });
   }
 
-  private _search(text: string) {
+  private searchTag(tag: string) {
+    this.keyPhrases = null;
+    this.searchResults = null;
+    return this._search({
+      filter: `tags/any(x: x eq '${tag}')`,
+    });
+  }
+
+  private keyPhraseSearch(text: string) {
     this.searching = true;
+    this.keyPhrases = null;
+    this.searchResults = null;
     return this.text.keyPhrases(text)
       .pipe(
         tap((resp) => this.keyPhrases = resp),
         filter((resp) => resp.documents && resp.documents.length),
-        flatMap((resp) => this.azsearch.query('artworks7', {
+        flatMap((resp) => this._search({
           queryType: 'full',
           search: resp.documents[0].keyPhrases
             .map((x: any) => `"${x}"`)
             .join(' AND '),
         })),
+      );
+  }
+
+  private _search(query: any) {
+    this.searching = true;
+    return this.azsearch.query('artworks7', query)
+      .pipe(
         tap((resp) => {
           this.searchResults = resp;
           this.searching = false;
