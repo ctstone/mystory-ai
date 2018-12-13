@@ -77,7 +77,7 @@ export class SpeechComponent implements OnInit {
     switch (this.state) {
       case 'WAIT': return 'WAIT';
       case 'Listening': return 'Listening';
-      default: return 'Type or query or click the mic to use your voice';
+      default: return 'Type your query, or click the mic to use your voice';
     }
   }
 
