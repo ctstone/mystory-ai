@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { tap, takeLast, flatMap, filter } from 'rxjs/operators';
 
@@ -15,10 +15,13 @@ const IMAGE_TYPE = 'LowResolutionImages2'; // PrimaryImage
   templateUrl: './story.component.html',
   styleUrls: ['./story.component.css']
 })
-export class StoryComponent implements OnInit {
+export class StoryComponent implements OnInit, OnDestroy {
 
   @ViewChild('imageViewer')
   imageViewer: ElementRef<HTMLElement>;
+
+  @ViewChild('phraseViewer')
+  phraseViewer: ElementRef<HTMLElement>;
 
   inputControl = new FormControl();
   useKeyPhraseControl = new FormControl(false);
@@ -27,6 +30,8 @@ export class StoryComponent implements OnInit {
   searching: boolean;
   tag: string;
   recording: Recording;
+  phrases: string[] = [];
+  continuousListen = false;
 
   get connected() { return this.stt.connected; }
   get connecting() { return this.stt.state === 'Connecting'; }
@@ -47,7 +52,6 @@ export class StoryComponent implements OnInit {
   private stt = new SpeechRecorder(this.context, 16000);
   private startingMic: boolean;
   private stopped: boolean;
-  private continuousListen = false;
 
   constructor(
     private config: ConfigService,
@@ -57,6 +61,10 @@ export class StoryComponent implements OnInit {
 
   async ngOnInit() {
     await this.connect();
+  }
+
+  async ngOnDestroy() {
+    this.stt.disconnect();
   }
 
   async connect() {
@@ -96,7 +104,6 @@ export class StoryComponent implements OnInit {
   }
 
   private _listen() {
-    console.log('LISTEN', this.startingMic);
     this.inputControl.reset();
     return this.stt.record(6000, false)
       .pipe(
@@ -107,8 +114,8 @@ export class StoryComponent implements OnInit {
         tap((recording) => this.inputControl.setValue(recording.text)),
         takeLast(1),
         flatMap((recording) => {
-          console.log('recording', recording);
           if (recording.text) {
+            this.phrases.push(recording.text);
             this.applyQuery(this.inputControl.value).subscribe();
           }
 
@@ -163,14 +170,15 @@ export class StoryComponent implements OnInit {
           setTimeout(() => {
             const images = this.imageViewer.nativeElement
               .querySelectorAll('img');
-            const lastImage = images.item(images.length - 1);
             this.imageViewer.nativeElement.scrollBy({
               left: this.imageViewer.nativeElement.scrollWidth,
               behavior: 'smooth',
             });
-            // lastImage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            // // console.log(lastImage);
-            window['temp'] = lastImage;
+
+            this.phraseViewer.nativeElement.scrollBy({
+              left: this.phraseViewer.nativeElement.scrollWidth,
+              behavior: 'smooth',
+            });
           }, 300);
         }),
       );

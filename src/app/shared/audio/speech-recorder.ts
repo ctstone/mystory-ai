@@ -69,11 +69,13 @@ export class SpeechRecorder {
     this.stopped = false;
 
     /** call to signal end of recording */
-    const stop = () => {
+    const stop = (timedout = false) => {
       if (!this.stopped) {
         this.stopped = true;
         this.listener.stop(closeStream);
-        this.speechWs.endAudio();
+        if (timedout) {
+          this.speechWs.endAudio();
+        }
       }
     };
 
@@ -130,7 +132,7 @@ export class SpeechRecorder {
 
     /** stop listening after some time */
     if (maxLength) {
-      setTimeout(stop, maxLength);
+      setTimeout(() => stop(true), maxLength);
     }
 
     return subject.asObservable();

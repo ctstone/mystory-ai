@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -17,7 +17,7 @@ const IMAGE_TYPE = 'LowResolutionImages2'; // PrimaryImage
   templateUrl: './speech.component.html',
   styleUrls: ['./speech.component.css']
 })
-export class SpeechComponent implements OnInit {
+export class SpeechComponent implements OnInit, OnDestroy {
 
   inputControl = new FormControl();
   useKeyPhraseControl = new FormControl(true);
@@ -69,6 +69,10 @@ export class SpeechComponent implements OnInit {
         flatMap((qp) => this.searchTag(qp.tag))
       )
       .subscribe();
+  }
+
+  async ngOnDestroy() {
+    this.stt.disconnect();
   }
 
   async connect() {
