@@ -34,6 +34,7 @@ export class SpeechRecorder {
   private listener: Listener;
   private converter: AudioConverter;
   private speechWs = new SpeechToTextWebsocket();
+  private stopped: boolean;
 
   constructor(context?: AudioContext, outputSampleRate = DEFAULT_OUTPUT_SAMPLE_RATE, bufferSize = DEFAULT_BUFFER_SIZE) {
     context = context || new AudioContext;
@@ -51,17 +52,23 @@ export class SpeechRecorder {
     this.speechWs.disconnect();
   }
 
+  stop() {
+    this.listener.stop();
+    this.speechWs.endAudio();
+    this.stopped = true;
+  }
+
   record(maxLength: number) {
     const recording: Recording = { text: '' };
     const recordingChunks: ArrayBuffer[] = [];
     const parts: { [key: string]: SpeechHypothesis | SpeechPhrase } = {};
     const subject = new Subject<Recording>();
-    let stopped = false;
+    this.stopped = false;
 
     /** call to signal end of recording */
     const stop = () => {
-      if (!stopped) {
-        stopped = true;
+      if (!this.stopped) {
+        this.stopped = true;
         this.listener.stop();
         this.speechWs.endAudio();
       }
@@ -85,11 +92,11 @@ export class SpeechRecorder {
     const s2 = this.speechWs.speechPhrase
       .pipe(
         tap((part) => {
-          if (stopped) {
+          if (this.stopped) {
             recording.wav = new Blob(recordingChunks, { type: AUDIO_BLOB_TYPE });
           }
           onSpeechChunk(part);
-          if (stopped) {
+          if (this.stopped) {
             subject.complete();
             [s1, s3, s4, s2].forEach((x) => x.unsubscribe());
           }
