@@ -3,7 +3,10 @@
     <div class="input-group">
       <input type="search" class="form-control" [formControl]="inputControl" [placeholder]="getQueryPlaceholder()">
       <div class="input-group-append">
-        <button type="button" class="btn btn-success" (click)="listen()" [disabled]="connecting" *ngIf="(connected || connecting) else showDisconnected">🎙️</button>
+        <button type="button" class="btn btn-outline-secondary" (click)="listen()" [disabled]="connecting" *ngIf="(connected || connecting) else showDisconnected">
+          <!-- 🎙️ -->
+          <i class="far fa-microphone"></i>
+        </button>
       </div>
     </div>
   </div>
