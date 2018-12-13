@@ -1,57 +1,90 @@
-<form (submit)="search()">
-  <div class="form-group">
-    <div class="input-group">
-      <input type="search" class="form-control" [formControl]="inputControl" [placeholder]="getQueryPlaceholder()">
-      <div class="input-group-append">
-        <button class="btn btn-danger" *ngIf="(continuousListen || listening) else showConnected" (click)="stop()">STOP</button>
-        
+<img src="assets/top.jpg" style="width: 100%; height:auto;">
+
+<div style="margin-left:16.5%; margin-right:16.5%">
+  <form (submit)="search()" class="my-2">
+    <div class="form-group ">
+      <div class="input-group">
+        <input type="search" class="form-control" [formControl]="inputControl" [placeholder]="getQueryPlaceholder()">
+        <div class="input-group-append">
+          <button class="btn btn-danger" *ngIf="(continuousListen || listening) else showConnected" (click)="stop()">STOP</button>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="form-group">
-    <ng-container *ngIf="!state && !continuousListen">
-      <button type="submit" class="btn btn-primary" [disabled]="state || !inputControl.value">search</button>
-      <span class="checkbox">
-        <label class="text-muted ml-3">
-          <input type="checkbox" [formControl]="useKeyPhraseControl">
-          extract only key phrase(s)
-        </label>
-      </span>
-    </ng-container>
-  </div>
-</form>
+    <!-- <div class="form-group">
+      <ng-container *ngIf="!state && !continuousListen">
+        <button type="submit" class="btn btn-primary" [disabled]="state || !inputControl.value">search</button>
+        <span class="checkbox">
+          <label class="text-muted ml-3">
+            <input type="checkbox" [formControl]="useKeyPhraseControl">
+            extract only key phrase(s)
+          </label>
+        </span>
+      </ng-container>
+    </div> -->
+  </form>
 
-<ng-container *ngIf="searchResults.length">
-  <h3 *ngIf="keyPhrases || tag">
-    <small *ngIf="keyPhrases">{{keyPhrases.documents[0].keyPhrases}}</small>
-    <small *ngIf="tag">{{tag}}</small>
-  </h3>
-  <p class="lead" *ngIf="searchResults.length === 0">No matches</p>
-  <div #imageViewer class="scrolling-wrapper" style="overflow:hidden; white-space: nowrap;">
-    <div class="card" style="display: inline-block;" *ngFor="let doc of searchResults; let i = index">
-      <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.id}}" *ngIf="doc.$primaryImageUrl">
-        <img class="card-img-top" style="height:400px;width: auto;" [src]="doc.$primaryImageUrl">
-      </a>
+  <ng-container *ngIf="searchResults.length">
+    <h3 *ngIf="keyPhrases || tag">
+      <small *ngIf="keyPhrases">{{keyPhrases.documents[0].keyPhrases}}</small>
+      <small *ngIf="tag">{{tag}}</small>
+    </h3>
+    <p class="lead" *ngIf="searchResults.length === 0">No matches</p>
+    <div #imageViewer class="scrolling-wrapper" style="overflow:hidden; white-space: nowrap;">
+      <div class="card" style="display: inline-block;" *ngFor="let doc of searchResults; let i = index">
+        <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.id}}" *ngIf="doc.$primaryImageUrl">
+          <img class="card-img-top" style="height:400px;width: auto;" [src]="doc.$primaryImageUrl">
+        </a>
+      </div>
+    </div>
+
+    <h4 #phraseViewer style="overflow:hidden; white-space: nowrap;" class="mt-3">
+      <span class="pr-3" *ngFor="let x of phrases">{{x}}</span>
+    </h4>
+  </ng-container>
+
+  <hr>
+
+  <div class="row">
+    <div class="col-sm-4">
+      <select class="form-control">
+        <option>AI Tools</option>
+        <option>Pattern Recognition</option>
+        <option>Use AI to Find Related Works</option>
+        <option>Identify Features / Motifs / Styles</option>
+        <option>Create a New Artwork</option>
+        <option>Suggestion/Recognition</option>
+        <option>Find Artworks that you Might Like</option>
+      </select>
+    </div>
+    <div class="col-sm-4">
+      <select class="form-control">
+        <option>Filters</option>
+        <option>Period / Date / Dynasty</option>
+        <option>Geography</option>
+        <option>Artist</option>
+        <option>Media</option>
+      </select>
+    </div>
+    <div class="col-sm-4" style="text-align: center;">
+      <p>Explore <a style="color:#e4002b; padding-top:4px;line-height:2;" href="#">Rihanna's</a> story</p>
     </div>
   </div>
 
-  <h4 #phraseViewer style="overflow:hidden; white-space: nowrap;" class="mt-3">
-    <span class="pr-3" *ngFor="let x of phrases">{{x}}</span>
-  </h4>
-</ng-container>
+  <pre>{{recording?.status}}</pre>
 
-<pre>{{recording?.status}}</pre>
-
-<ng-container *ngIf="searching">
-  <p class="lead">Searching...</p>
-</ng-container>
+  <ng-container *ngIf="searching">
+    <p class="lead">Searching...</p>
+  </ng-container>
+</div>
 
 <ng-template #showConnected>
-  <button type="button" class="btn btn-outline-secondary" (click)="listen()" [disabled]="connecting" *ngIf="(connected || connecting) else showDisconnected">
-    <i class="far fa-microphone"></i>
+  <button type="button" class="btn btn-dark" (click)="listen()" [disabled]="connecting" *ngIf="(connected || connecting) else showDisconnected">
+    <i class="far fas fa-microphone"></i>
   </button>
 </ng-template>
 
 <ng-template #showDisconnected>
   <button type="button" class="btn btn-success" (click)="connect()">Connect</button>
 </ng-template>
+
+<img src="assets/bottom.jpg" class="mt-3" style="width: 100%; height:auto;">
