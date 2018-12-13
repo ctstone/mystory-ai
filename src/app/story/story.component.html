@@ -1,3 +1,45 @@
-<p>
-  story works!
-</p>
+<form (submit)="search()">
+  <div class="form-group">
+    <div class="input-group">
+      <input type="search" class="form-control" [formControl]="inputControl" [placeholder]="getQueryPlaceholder()">
+      <div class="input-group-append">
+        <button type="button" class="btn btn-outline-secondary" (click)="listen()" [disabled]="connecting" *ngIf="(connected || connecting) else showDisconnected">
+          <!-- 🎙️ -->
+          <i class="far fa-microphone"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <button type="submit" class="btn btn-primary" [disabled]="state || !inputControl.value">search</button>
+    <span class="checkbox">
+      <label class="text-muted ml-3">
+        <input type="checkbox" [formControl]="useKeyPhraseControl">
+        reduce to key phrase(s)
+      </label>
+    </span>
+  </div>
+</form>
+
+<ng-container *ngIf="searching">
+  <p class="lead">Searching...</p>
+</ng-container>
+
+<ng-container *ngIf="searchResults">
+  <h3 *ngIf="keyPhrases || tag">
+    <small *ngIf="keyPhrases">{{keyPhrases.documents[0].keyPhrases}}</small>
+    <small *ngIf="tag">{{tag}}</small>
+  </h3>
+  <p class="lead" *ngIf="searchResults.value.length === 0">No matches</p>
+  <div class="card-columns">
+    <div class="card" *ngFor="let doc of searchResults.value; let i = index">
+      <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.id}}" (click)="onDocumentClick(i, doc, $event)" *ngIf="doc.$primaryImageUrl">
+        <img class="card-img-top" [src]="doc.$primaryImageUrl">
+      </a>
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #showDisconnected>
+  <button type="button" class="btn btn-success" (click)="connect()">Connect</button>
+</ng-template>
