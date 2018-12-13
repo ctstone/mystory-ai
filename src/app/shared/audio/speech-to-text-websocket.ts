@@ -42,6 +42,7 @@ export class SpeechToTextWebsocket {
   get speechPhrase() { return this.mSpeechPhrase as Observable<SpeechPhrase>; }
   get speechHypothesis() { return this.mSpeechHypothesis as Observable<SpeechHypothesis>; }
   get isOpen() { return this.ws && this.ws.readyState === WebSocket.OPEN; }
+  get turnEnd() { return this.mTurnEnd as Observable<any>; }
 
   private ws: WebSocket;
   private audioRequestId: string;
@@ -50,6 +51,7 @@ export class SpeechToTextWebsocket {
   private mSpeechEnd = new Subject<SpeechBoundary>();
   private mSpeechPhrase = new Subject<SpeechPhrase>();
   private mSpeechHypothesis = new Subject<SpeechHypothesis>();
+  private mTurnEnd = new Subject<any>();
 
   constructor() { }
 
@@ -64,7 +66,6 @@ export class SpeechToTextWebsocket {
       + `&X-ConnectionId=${this.connectionId}`;
     this.ws = new WebSocket(url);
     this.ws.addEventListener('open', () => {
-      console.log('OPENED');
       try {
         this.sendSpeechConfig();
         sentConfig.resolve();
@@ -97,6 +98,9 @@ export class SpeechToTextWebsocket {
         case 'speech.endDetected':
           this.mSpeechEnd.next(message.body);
           break;
+
+        case 'turn.end':
+          this.mTurnEnd.next();
       }
     });
 

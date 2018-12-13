@@ -34,12 +34,14 @@ export class Listener {
     return this.source;
   }
 
-  stop() {
+  stop(closeStream = true) {
     this.listening = false;
     this.processor.removeEventListener('audioprocess', this.audioHandler);
-    this.source.mediaStream.getAudioTracks()
-      .forEach(track => track.stop());
-    this.context.suspend();
+    if (closeStream) {
+      this.source.mediaStream.getAudioTracks()
+        .forEach(track => track.stop());
+      this.context.suspend();
+    }
   }
 }
 

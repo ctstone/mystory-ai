@@ -58,7 +58,10 @@ export class SpeechRecorder {
     this.stopped = true;
   }
 
-  record(maxLength: number) {
+  record(maxLength: number, closeStream = true) {
+    if (!this.stopped) {
+      console.log('NOT STOPPED');
+    }
     const recording: Recording = { text: '' };
     const recordingChunks: ArrayBuffer[] = [];
     const parts: { [key: string]: SpeechHypothesis | SpeechPhrase } = {};
@@ -69,7 +72,7 @@ export class SpeechRecorder {
     const stop = () => {
       if (!this.stopped) {
         this.stopped = true;
-        this.listener.stop();
+        this.listener.stop(closeStream);
         this.speechWs.endAudio();
       }
     };
@@ -96,17 +99,20 @@ export class SpeechRecorder {
             recording.wav = new Blob(recordingChunks, { type: AUDIO_BLOB_TYPE });
           }
           onSpeechChunk(part);
-          if (this.stopped) {
-            subject.complete();
-            [s1, s3, s4, s2].forEach((x) => x.unsubscribe());
-          }
         })
       )
       .subscribe(onSpeechChunk);
     const s3 = this.speechWs.speechHypothesis
       .subscribe(onSpeechChunk);
-    const s4 = this.speechWs.speechEnd
-      .subscribe(() => stop());
+    const s4 = this.speechWs.turnEnd
+      .subscribe(() => {
+        subject.complete();
+        [s1, s3, s4, s5, s2].forEach((x) => x.unsubscribe());
+      });
+    const s5 = this.speechWs.speechEnd
+      .subscribe(() => {
+        stop();
+      });
 
     /** open the microphone */
     this.listener.listen((buffer) => {

@@ -2,11 +2,10 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { tap, takeLast, flatMap, filter } from 'rxjs/operators';
 
-import { SpeechRecorder } from '../shared/audio/speech-recorder';
+import { SpeechRecorder, Recording } from '../shared/audio/speech-recorder';
 import { ConfigService } from '../shared/config.service';
 import { TextAnalyticsService } from '../shared/text-analytics.service';
 import { SearchService } from '../shared/search.service';
-import { AppInsights } from 'applicationinsights-js';
 import { of } from 'rxjs';
 
 const IMAGE_TYPE = 'LowResolutionImages2'; // PrimaryImage
@@ -27,6 +26,7 @@ export class StoryComponent implements OnInit {
   searchResults: any[] = [];
   searching: boolean;
   tag: string;
+  recording: Recording;
 
   get connected() { return this.stt.connected; }
   get connecting() { return this.stt.state === 'Connecting'; }
@@ -34,6 +34,8 @@ export class StoryComponent implements OnInit {
   get state() {
     if (this.startingMic && !this.listening) {
       return 'WAIT';
+    } else if (this.continuousListen) {
+      return 'Listening';
     } else if (this.searching) {
       return 'Searching';
     } else {
@@ -45,6 +47,7 @@ export class StoryComponent implements OnInit {
   private stt = new SpeechRecorder(this.context, 16000);
   private startingMic: boolean;
   private stopped: boolean;
+  private continuousListen = false;
 
   constructor(
     private config: ConfigService,
@@ -69,12 +72,15 @@ export class StoryComponent implements OnInit {
   }
 
   listen() {
+    this.continuousListen = true;
     this.stopped = false;
     this.inputControl.reset();
     this.startingMic = true;
     this._listen()
       .subscribe(() => {
+        console.log('DONE');
         this.startingMic = false;
+        this.continuousListen = false;
       });
   }
 
@@ -92,11 +98,16 @@ export class StoryComponent implements OnInit {
   private _listen() {
     console.log('LISTEN', this.startingMic);
     this.inputControl.reset();
-    return this.stt.record(4500)
+    return this.stt.record(6000, false)
       .pipe(
+        tap((recording) => {
+          this.startingMic = false;
+          this.recording = recording;
+        }),
         tap((recording) => this.inputControl.setValue(recording.text)),
         takeLast(1),
         flatMap((recording) => {
+          console.log('recording', recording);
           if (recording.text) {
             this.applyQuery(this.inputControl.value).subscribe();
           }
