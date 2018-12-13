@@ -1,19 +1,46 @@
-<ng-container *ngIf="connected else showDisconnected">
-  <button class="btn btn-large btn-primary" (click)="listen()" [disabled]="state">
-    {{state || 'Capture Speech'}}
-  </button>
+<form (submit)="search()">
+  <div class="form-group">
+    <div class="input-group">
+      <input type="search" class="form-control" [formControl]="inputControl" [placeholder]="getQueryPlaceholder()">
+      <div class="input-group-append">
+        <button type="button" class="btn btn-success" (click)="listen()" [disabled]="connecting" *ngIf="(connected || connecting) else showDisconnected">🎙️</button>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <button type="submit" class="btn btn-primary" [disabled]="state || !inputControl.value">search</button>
+  </div>
+</form>
+
+<ng-container *ngIf="keyPhrases && !searchResults">
+  <h3>Key Phrases</h3>
+  {{keyPhrases.documents[0].keyPhrases}}
 </ng-container>
 
-<ng-container *ngIf="recording">
-  <hr>
-  <p class="lead"> <i>{{recording.text || '...'}}</i> </p>
+<ng-container *ngIf="searchResults">
+  <h3>Results <small>{{keyPhrases.documents[0].keyPhrases}}</small></h3>
+  <div class="card-columns">
+    <div class="card" *ngFor="let doc of searchResults.value">
+      <img class="card-img-top" [src]="doc.$primaryImageUrl">
+      <div class="card-body">
+        <h5 class="card-title">{{doc.title}}</h5>
+        <p class="card-text">
+          {{doc.medium}}<ng-container *ngIf="doc.medium && doc.objectDate">, </ng-container>
+          <small class="text-muted">{{doc.objectDate}}</small>
+        </p>
+        <p class="card-text">
+          <small>{{doc.department}}</small>
+          <span class="small text-muted ml-2" *ngIf="doc.creditLine">from {{doc.creditLine}}</span>
+        </p>
+        <p class="card-text">
+          <span class="badge badge-secondary mr-2" *ngFor="let tag of doc.tags">{{tag}}</span>
+        </p>
+      </div>
+    </div>
+  </div>
+  <!-- {{searchResults.value|json}} -->
 </ng-container>
 
 <ng-template #showDisconnected>
-  <button type="button" class="btn btn-primary mr-2" [disabled]="connecting" (click)="connect()">Connect</button>
-  <span class="small text-muted" *ngIf="!connecting else showConnecting">DISCONNECTED</span>
-</ng-template>
-
-<ng-template #showConnecting>
-  <span class="small text-muted">CONNECTING...</span>
+  <button type="button" class="btn btn-success" (click)="connect()">Connect</button>
 </ng-template>
