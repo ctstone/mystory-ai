@@ -8,6 +8,7 @@ import { SpeechRecorder } from '../shared/audio/speech-recorder';
 import { ConfigService } from '../shared/config.service';
 import { TextAnalyticsService } from '../shared/text-analytics.service';
 import { SearchService } from '../shared/search.service';
+import { AppInsights } from 'applicationinsights-js';
 
 const IMAGE_TYPE = 'LowResolutionImages2'; // PrimaryImage
 
@@ -101,6 +102,15 @@ export class SpeechComponent implements OnInit {
     return text === this.route.snapshot.queryParams.q
       ? this.applyQuery(text).subscribe()
       : this.navigateToQuery(text);
+  }
+
+  onDocumentClick(rank: number, document: any, event: MouseEvent) {
+    AppInsights.trackEvent('Click', {
+      SearchServiceName: this.config.searchService,
+      SearchId: this.searchResults['@search.id'],
+      ClickedDocId: document.id,
+      Rank: rank.toString(),
+    });
   }
 
   private applyQuery(query: string) {

@@ -30,13 +30,13 @@
   </h3>
   <p class="lead" *ngIf="searchResults.value.length === 0">No matches</p>
   <div class="card-columns">
-    <div class="card" *ngFor="let doc of searchResults.value">
-      <a href="http://www.metmuseum.org/art/collection/search/{{doc.id}}" *ngIf="doc.$primaryImageUrl">
+    <div class="card" *ngFor="let doc of searchResults.value; let i = index">
+      <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.id}}" (click)="onDocumentClick(i, doc, $event)" *ngIf="doc.$primaryImageUrl">
         <img class="card-img-top" [src]="doc.$primaryImageUrl">
       </a>
       <div class="card-body">
         <h5 class="card-title">
-          <a href="http://www.metmuseum.org/art/collection/search/{{doc.id}}">{{doc.title}}</a>
+          <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.id}}" (click)="onDocumentClick(i, doc, $event)">{{doc.title}}</a>
         </h5>
         <p class="card-text">
           {{doc.medium}}<ng-container *ngIf="doc.medium && doc.objectDate">, </ng-container>

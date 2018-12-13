@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
+import { AppInsights } from 'applicationinsights-js';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +23,7 @@ export class ConfigService {
       .pipe(
         tap((resp) => {
           Object.keys(resp).forEach((x) => this[x] = resp[x]);
+          AppInsights.downloadAndSetup({ instrumentationKey: resp.telemetryKey });
         }),
       );
   }
