@@ -6,11 +6,15 @@ import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { SpeechComponent } from './speech/speech.component';
+import { StoryComponent } from './story/story.component';
+import { HomeComponent } from './home/home.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    SpeechComponent
+    SpeechComponent,
+    StoryComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,

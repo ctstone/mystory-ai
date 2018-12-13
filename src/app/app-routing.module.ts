@@ -3,10 +3,15 @@ import { Routes, RouterModule } from '@angular/router';
 
 import { SpeechComponent } from './speech/speech.component';
 import { ConfigGuardGuard } from './shared/config-guard.guard';
+import { StoryComponent } from './story/story.component';
+import { HomeComponent } from './home/home.component';
 
 const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'speech' },
-  { path: 'speech', component: SpeechComponent, canActivate: [ ConfigGuardGuard] },
+  { path: '', canActivate: [ConfigGuardGuard], children: [
+    { path: '', pathMatch: 'full', component: HomeComponent },
+    { path: 'speech', component: SpeechComponent },
+    { path: 'story', component: StoryComponent },
+  ] }
 ];
 
 @NgModule({

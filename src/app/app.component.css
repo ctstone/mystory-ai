@@ -1,0 +1,13 @@
+.bg-dark {
+  background: #e4002b !important
+}
+.nav-item .nav-link {
+  font-weight: bold;
+}
+
+.nav-link.active {
+  border: solid white;
+  border-width: 0 0 4px 0;
+  background: none;
+  border-radius: 0;
+}
