@@ -8,8 +8,6 @@ import { TextAnalyticsService } from '../shared/text-analytics.service';
 import { SearchService } from '../shared/search.service';
 import { of } from 'rxjs';
 
-const IMAGE_TYPE = 'LowResolutionImages2'; // PrimaryImage
-
 @Component({
   selector: 'app-speech',
   templateUrl: './story.component.html',
@@ -159,10 +157,10 @@ export class StoryComponent implements OnInit, OnDestroy {
           this.searching = false;
           resp.value.forEach((doc: any) => {
             if (doc.primaryImageUrl) {
-              doc.$primaryImageUrl = 'https://airotationstore.blob.core.windows.net/met-artworks/'
-                + `artwork_images/${IMAGE_TYPE}/${doc.id}.jpg`
-                + '?st=2018-12-13T04%3A23%3A44Z&se=2118-12-14T04%3A23%3A00Z&sp=rl&sv=2018-03-28&sr=c'
-                + '&sig=wKy6JcE%2FD0j2H%2BXByasn2YK5fstVReHeurgN12OKV3c%3D';
+              doc.$primaryImageUrl = 'https://methackstor.blob.core.windows.net/met-artworks'
+                 + `/artwork_images/PrimaryImages_LowRes/${doc.id}.jpg`
+                 + '?st=2018-12-22T01%3A16%3A24Z&se=2019-12-23T01%3A16%3A00Z&sp=rwl&sv=2018-03-28&sr=c'
+                 + '&sig=xPBaUe2E8oUF2IH6SvZKG4gNQDuCR6KjsPhUb24XKUQ%3D';
             }
           });
           // this.searchResults.splice(0, 0, ...resp.value);
