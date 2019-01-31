@@ -36,11 +36,13 @@ export class Listener {
 
   stop(closeStream = true) {
     this.listening = false;
-    this.processor.removeEventListener('audioprocess', this.audioHandler);
-    if (closeStream) {
-      this.source.mediaStream.getAudioTracks()
-        .forEach(track => track.stop());
-      this.context.suspend();
+    if (this.processor) {
+      this.processor.removeEventListener('audioprocess', this.audioHandler);
+      if (closeStream) {
+        this.source.mediaStream.getAudioTracks()
+          .forEach(track => track.stop());
+        this.context.suspend();
+      }
     }
   }
 }
