@@ -1,21 +1,24 @@
-import { Observable, Subject } from 'rxjs';
+import { Subject, Observable } from 'rxjs';
 import { TextEncoder } from 'text-encoding';
 import { v4 as uuid } from 'uuid';
-
 import { DataViewWriter } from './data-view-writer';
 
 const CRLF = '\r\n';
 const SEPARATOR = CRLF + CRLF;
 const TEXT_ENCODER = new TextEncoder();
 
-interface Deferred<T> {
-  promise: Promise<T>;
-  resolve: (value?: T | PromiseLike<T>) => void;
-  reject: (reason?: any) => void;
-}
-
 interface KeyValues<T> {
   [key: string]: T;
+}
+
+export interface SpeechEvent {
+  type: 'hypothesis' | 'phrase' | 'start' | 'end' | 'turnStart' | 'turnEnd' | 'connected' | 'disconnected';
+  hypothesis?: SpeechHypothesis;
+  phrase?: SpeechPhrase;
+  start?: SpeechBoundary;
+  end?: SpeechBoundary;
+  turnStart?: any;
+  turnEnd?: any;
 }
 
 export interface SpeechHypothesis {
@@ -35,113 +38,102 @@ export interface SpeechBoundary {
   Offset: number;
 }
 
-export class SpeechToTextWebsocket {
+export class SpeechToTextSocket {
+  get state() {
+    if (!this.socket) {
+      return 'closed';
+    }
+    switch (this.socket.readyState) {
+      case WebSocket.CLOSED: return 'closed';
+      case WebSocket.CLOSING: return 'closing';
+      case WebSocket.OPEN: return 'open';
+      default: return 'closed';
+    }
+  }
 
-  get speechStart() { return this.mSpeechStart as Observable<SpeechBoundary>; }
-  get speechEnd() { return this.mSpeechEnd as Observable<SpeechBoundary>; }
-  get speechPhrase() { return this.mSpeechPhrase as Observable<SpeechPhrase>; }
-  get speechHypothesis() { return this.mSpeechHypothesis as Observable<SpeechHypothesis>; }
-  get isOpen() { return this.ws && this.ws.readyState === WebSocket.OPEN; }
-  get turnEnd() { return this.mTurnEnd as Observable<any>; }
+  readonly events: Observable<SpeechEvent>;
 
-  private ws: WebSocket;
+  private readonly socket: WebSocket;
+  private readonly connectionId = createUUID();
+  private readonly subject = new Subject<SpeechEvent>();
   private audioRequestId: string;
-  private connectionId: string;
-  private mSpeechStart = new Subject<SpeechBoundary>();
-  private mSpeechEnd = new Subject<SpeechBoundary>();
-  private mSpeechPhrase = new Subject<SpeechPhrase>();
-  private mSpeechHypothesis = new Subject<SpeechHypothesis>();
-  private mTurnEnd = new Subject<any>();
+  private readyStart: Deferred<void>;
 
-  constructor() { }
-
-  connect(endpoint: string, key: string) {
-    const sentConfig = deferred<void>();
-
-    this.connectionId = createUUID();
-    const temp = endpoint.includes('?') ? '&' : '?';
+  constructor(endpoint: string, key: string, private contentType = 'audio/x-wav') {
     const url = endpoint.replace('https:', 'wss:')
-      + temp
+      + (endpoint.includes('?') ? '&' : '?')
       + `Ocp-Apim-Subscription-Key=${key}`
       + `&X-ConnectionId=${this.connectionId}`;
-    console.log('Creating WS');
-    this.ws = new WebSocket(url);
-    this.ws.addEventListener('open', () => {
-      console.log('WS open');
-      try {
-        this.sendSpeechConfig();
-        sentConfig.resolve();
-      } catch (err) {
-        sentConfig.reject(err);
-      }
-    });
+    this.socket = new WebSocket(url);
+    this.events = this.subject.asObservable();
+    this.socket.addEventListener('open', (event) => this.onOpen(event));
+    this.socket.addEventListener('error', (event) => this.onError(event));
+    this.socket.addEventListener('close', (event) => this.onClose(event));
+    this.socket.addEventListener('message', (event) => this.onMessage(event));
 
-    this.ws.addEventListener('error', (event) => {
-      console.error('WebSocket error', event);
-    });
-
-    this.ws.addEventListener('message', (event) => {
-      const message = decodeMessage(event.data);
-      console.log(message.headers.Path, message.body);
-
-      switch (message.headers.Path) {
-        case 'speech.startDetected':
-          this.mSpeechStart.next(message.body);
-          break;
-
-        case 'speech.hypothesis':
-          this.mSpeechHypothesis.next(message.body);
-          break;
-
-        case 'speech.phrase':
-          this.mSpeechPhrase.next(message.body);
-          break;
-
-        case 'speech.endDetected':
-          this.mSpeechEnd.next(message.body);
-          break;
-
-        case 'turn.end':
-          this.mTurnEnd.next();
-      }
-    });
-
-    this.ws.addEventListener('close', (event) => {
-      console.log('WebSocket closed', event);
-    });
-
-    return sentConfig.promise;
+    this.readyStart = defer();
   }
 
-  disconnect() {
-    this.ws.close();
-  }
+  async processAudio(audio?: ArrayBuffer) {
 
-  beginAudio(speech: ArrayBuffer, contentType: string) {
-    const headers = { 'Content-Type': contentType };
-    this.audioRequestId = this.send('audio', headers, speech);
-    return this.audioRequestId;
-  }
+    await this.readyStart.promise;
 
-  audio(speech: ArrayBuffer) {
-    this.throwIfNoAudioRequestId();
-    const headers = { 'X-RequestId': this.audioRequestId, 'Content-Type': 'audio/x-wav' };
-    return this.send('audio', headers, speech);
-  }
+    const headers: KeyValues<string> = { 'Content-Type': this.contentType };
 
-  endAudio() {
-    this.throwIfNoAudioRequestId();
-    const headers = { 'X-RequestId': this.audioRequestId, 'Content-Type': 'audio/x-wav' };
-    return this.send('audio', headers, new ArrayBuffer(0));
+    // on continue and end
+    if (this.audioRequestId) {
+      headers['X-RequestId'] = this.audioRequestId;
+    }
+
+    // on end
+    if (!audio) {
+      audio = new ArrayBuffer(0);
+    }
+
+    const requestId = this.send('audio', headers, audio);
+
+    // on first
+    if (!this.audioRequestId) {
+      this.audioRequestId = requestId;
+    }
   }
 
   close() {
-    this.ws.close();
+    this.socket.close();
   }
 
-  private throwIfNoAudioRequestId() {
-    if (!this.audioRequestId) {
-      throw new Error('Must call beginAudio first');
+  private onMessage(event: MessageEvent) {
+    const message = decodeMessage(event.data);
+
+    switch (message.headers.Path) {
+      case 'speech.startDetected':
+        this.subject.next({ type: 'start', start: message.body });
+        break;
+
+      case 'speech.hypothesis':
+        this.subject.next({ type: 'hypothesis', hypothesis: message.body });
+        break;
+
+      case 'speech.phrase':
+        this.subject.next({ type: 'phrase', phrase: message.body });
+        break;
+
+      case 'speech.endDetected':
+        this.subject.next({ type: 'end', end: message.body });
+        break;
+
+      case 'turn.start':
+      this.subject.next({ type: 'turnStart', turnStart: message.body });
+      break;
+
+      case 'turn.end':
+        this.subject.next({ type: 'turnEnd', turnEnd: message.body });
+        this.audioRequestId = null;
+        break;
+
+      default:
+        console.log('Unkown speech event', message.headers.Path, message.body);
+        break;
     }
   }
 
@@ -188,7 +180,7 @@ export class SpeechToTextWebsocket {
 
     // string message
     if (typeof body === 'string') {
-      this.ws.send(headersText + SEPARATOR + body);
+      this.socket.send(headersText + SEPARATOR + body);
 
     // binary message
     } else {
@@ -205,17 +197,33 @@ export class SpeechToTextWebsocket {
         .writeBytes(headerBytes)
         .writeBytes(new Uint8Array(body))
         .buffer;
-      this.ws.send(data);
+      this.socket.send(data);
     }
 
     return requestId;
+  }
+
+  private onOpen(event: Event) {
+    console.log('Speech WebSocket is open');
+    this.sendSpeechConfig();
+    this.readyStart.resolve();
+    this.subject.next({ type: 'connected' });
+  }
+
+  private onError(event: Event) {
+    console.log('Speech WebSocket error', event);
+    this.subject.error(event);
+  }
+
+  private onClose(event: Event) {
+    console.log('Speech WebSocket is closed');
+    this.subject.next({ type: 'disconnected' });
   }
 }
 
 function encodeKeyValues(values: KeyValues<string>) {
   return Object.keys(values)
     .filter((key) => values[key] !== undefined)
-    // .map((key) => `${key}:${encodeURIComponent(values[key])}`)
     .map((key) => `${key}:${values[key]}`)
     .join(CRLF);
 }
@@ -249,7 +257,13 @@ function decodeText(text: string, contentType: string) {
   }
 }
 
-function deferred<T = any>(): Deferred<T> {
+interface Deferred<T> {
+  promise: Promise<T>;
+  resolve: (value?: T | PromiseLike<T>) => void;
+  reject: (reason?: any) => void;
+}
+
+function defer<T = any>(): Deferred<T> {
   const d: Deferred<T> = {
     resolve: null,
     reject: null,

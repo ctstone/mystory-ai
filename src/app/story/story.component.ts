@@ -1,204 +1,135 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
-import { FormControl } from '@angular/forms';
-import { tap, takeLast, flatMap, filter, debounce, debounceTime, distinctUntilChanged, delay } from 'rxjs/operators';
-import { Subject, empty } from 'rxjs';
-
-import { SpeechRecorder, Recording } from '../shared/audio/speech-recorder';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { Recorder } from '../shared/audio/recorder2';
+import { SpeechToTextSocket } from '../shared/audio/stt-ws';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ConfigService } from '../shared/config.service';
-import { TextAnalyticsService } from '../shared/text-analytics.service';
+import { FormControl } from '@angular/forms';
+import { tap, filter, flatMap, map } from 'rxjs/operators';
 import { SearchService } from '../shared/search.service';
-import { of } from 'rxjs';
-
-const AudioContext = window['AudioContext'] || window['webkitAudioContext'];
+import { ScrollDirective } from '../shared/scroll.directive';
 
 @Component({
-  selector: 'app-speech',
+  selector: 'app-story',
   templateUrl: './story.component.html',
   styleUrls: ['./story.component.css']
 })
-export class StoryComponent implements OnInit, OnDestroy {
+export class StoryComponent implements OnInit {
 
-  @ViewChild('imageViewer')
-  imageViewer: ElementRef<HTMLElement>;
+  @ViewChild('imagesElement')
+  imagesChild: ScrollDirective;
 
-  @ViewChild('phraseViewer')
-  phraseViewer: ElementRef<HTMLElement>;
+  @ViewChild('phrasesElement')
+  phrasesChild: ScrollDirective;
 
+  get recording() { return this.recordState === 'recording'; }
+  get connected() { return this.connectState === 'open'; }
+  get connectState() { return this.connection ? this.connection.state : null; }
+  get recordState() { return this.recorder ? this.recorder.state : null; }
+
+  connecting: boolean;
+  wavUrl: SafeUrl;
   inputControl = new FormControl();
-  useKeyPhraseControl = new FormControl(false);
-  keyPhrases: any;
-  searchResults: any[] = [];
-  searching: boolean;
-  tag: string;
-  recording: Recording;
+  docs: any[] = [];
   phrases: string[] = [];
-  hypothesis: string;
-  continuousListen = false;
+  placeholder = '';
 
-  get connected() { return this.stt.connected; }
-  get connecting() { return this.stt.state === 'Connecting'; }
-  get listening() { return this.stt.state === 'Listening'; }
-  get state() {
-    if (this.startingMic && !this.listening) {
-      return 'WAIT';
-    } else if (this.continuousListen) {
-      return 'Listening';
-    } else if (this.searching) {
-      return 'Searching';
-    } else {
-      return this.stt.state;
-    }
-  }
-
-  private context = new AudioContext();
-  private stt = new SpeechRecorder(this.context, 16000);
-  private startingMic: boolean;
-  private stopped: boolean;
-  private recognizedPhrases = new Subject<string>();
+  private recorder: Recorder;
+  private connection: SpeechToTextSocket;
 
   constructor(
-    private config: ConfigService,
-    private text: TextAnalyticsService,
-    private azsearch: SearchService,
-  ) { }
+    private conf: ConfigService,
+    private search: SearchService,
+    private sanitizer: DomSanitizer) { }
 
-  async ngOnInit() {
-    await this.connect();
+  ngOnInit() {
+    this.connect();
+  }
 
-    this.recognizedPhrases
+  connect() {
+    this.connecting = true;
+    this.connection = new SpeechToTextSocket(this.conf.speechEndpoint, this.conf.speechKey);
+    this.connection.events
       .pipe(
-        debounceTime(500),
-        distinctUntilChanged(),
-        filter((x) => !!x),
-        flatMap((text) => this.applyQuery(text))
+        tap((event) => {
+          if (event.type === 'phrase' && event.phrase.DisplayText) {
+            this.phrases.push(event.phrase.DisplayText);
+            this.phrasesChild.scrollToEnd();
+          } else if (event.type === 'turnStart') {
+            this.inputControl.enable();
+            this.inputControl.reset();
+          } else if (event.type === 'turnEnd') {
+            this.inputControl.disable();
+          } else if (event.type === 'connected') {
+            this.connecting = false;
+          }
+        }),
+        filter((event) => event.type === 'hypothesis' && !!event.hypothesis.Text),
+        tap((event) => this.inputControl.setValue(event.hypothesis.Text)),
+        flatMap((event) => this.executeSearch(event.hypothesis.Text)),
+        tap((docs) => {
+          for (const doc of docs) {
+            if (!this.docs.some((d) => d.id === doc.id)) {
+              this.docs.push(doc);
+            }
+          }
+          this.imagesChild.scrollToEnd();
+        }),
       )
       .subscribe();
   }
 
-  async ngOnDestroy() {
-    this.stt.disconnect();
-  }
-
-  async connect() {
-    await this.stt.connect(this.config.speechEndpoint, this.config.speechKey);
-  }
-
-  getQueryPlaceholder() {
-    switch (this.state) {
-      case 'WAIT': return 'WAIT';
-      case 'Listening': return 'Listening';
-      default: return 'Record your story; click the mic to use your voice.';
+  record() {
+    if (!this.connected) {
+      throw new Error('Not connected');
     }
-  }
-
-  listen() {
-    this.continuousListen = true;
-    this.stopped = false;
-    this.inputControl.reset();
-    this.startingMic = true;
-    this._listen()
-      .subscribe(() => {
-        console.log('DONE');
-        this.startingMic = false;
-        this.continuousListen = false;
-      });
-  }
-
-  search() {
-    const text: string = this.inputControl.value;
-    return this.applyQuery(text).subscribe();
+    const chunks: ArrayBuffer[] = [];
+    this.placeholder = 'WAIT (mic)';
+    this.recorder = new Recorder(4096, 16000);
+    this.recorder.start()
+      .subscribe(
+        (chunk) => {
+          this.placeholder = 'Listening...';
+          this.connection.processAudio(chunk);
+          chunks.push(chunk);
+        },
+        (err) => console.error(err),
+        () => {
+          this.connection.processAudio(null);
+          const blob = new Blob(chunks, { type: 'audio/wav' });
+          const url = URL.createObjectURL(blob);
+          this.wavUrl = this.sanitizer.bypassSecurityTrustUrl(url);
+          this.docs.length = 0;
+          this.phrases.length = 0;
+          this.placeholder = '';
+        }
+      );
   }
 
   stop() {
-    this.stopped = true;
-    this.stt.stop();
-    this.startingMic = false;
-  }
-
-  private _listen() {
-    this.inputControl.reset();
-    return this.stt.record(10000, false)
-      .pipe(
-        tap((recording) => {
-          this.startingMic = false;
-          this.recording = recording;
-          this.inputControl.setValue(recording.text);
-          this.hypothesis = recording.text;
-          this.recognizedPhrases.next(recording.text);
-        }),
-        takeLast(1),
-        tap((recording) => {
-          this.hypothesis = null;
-          if (recording.text) {
-            this.phrases.push(recording.text);
-          }
-        }),
-        // delay(100),
-        flatMap(() => this.stopped ? of(true) : this._listen()),
-      );
-  }
-
-  private applyQuery(query: string) {
-    console.log('QUERY', query);
-    if (!this.useKeyPhraseControl.value) {
-      this.keyPhrases = null;
+    if (this.recorder.state === 'recording') {
+      this.recorder.stop();
     }
-    return this.useKeyPhraseControl.value
-      ? this.keyPhraseSearch(query)
-      : this._search({ search: query, filter: 'hasPrimaryImage', top: 2 });
   }
 
-  private keyPhraseSearch(text: string) {
-    this.searching = true;
-    this.keyPhrases = null;
-    return this.text.keyPhrases(text)
+  private executeSearch(keywords: string) {
+    const query = {
+      search: keywords,
+      filter: 'hasPrimaryImage',
+      top: 2,
+    };
+    return this.search.query('artworks8', query)
       .pipe(
-        tap((resp) => this.keyPhrases = resp),
-        filter((resp) => resp.documents && resp.documents.length),
-        flatMap((resp) => this._search({
-          queryType: 'full',
-          search: resp.documents[0].keyPhrases
-            .map((x: any) => `"${x}"`)
-            .join(' AND '),
-          filter: 'hasPrimaryImage',
-          top: 4,
-        })),
+        map((resp) => resp.value as any[]),
+        tap((docs) => docs.forEach(setPrimaryUrl)),
       );
   }
+}
 
-  private _search(query: any) {
-    this.searching = true;
-    return this.azsearch.query('artworks8', query)
-      .pipe(
-        tap((resp) => {
-          this.searching = false;
-          resp.value.forEach((doc: any) => {
-            if (doc.primaryImageUrl) {
-              doc.$primaryImageUrl = 'https://methackstor.blob.core.windows.net/met-artworks'
-                 + `/artwork_images/PrimaryImages_LowRes/${doc.id}.jpg`
-                 + '?st=2018-12-22T01%3A16%3A24Z&se=2019-12-23T01%3A16%3A00Z&sp=rwl&sv=2018-03-28&sr=c'
-                 + '&sig=xPBaUe2E8oUF2IH6SvZKG4gNQDuCR6KjsPhUb24XKUQ%3D';
-            }
-          });
-          // this.searchResults.splice(0, 0, ...resp.value);
-          this.searchResults = this.searchResults.concat(resp.value);
-          setTimeout(() => {
-            if (this.imageViewer.nativeElement.scrollBy) {
-              this.imageViewer.nativeElement.scrollBy({
-                left: this.imageViewer.nativeElement.scrollWidth,
-                behavior: 'smooth',
-              });
-
-              this.phraseViewer.nativeElement.scrollBy({
-                left: this.phraseViewer.nativeElement.scrollWidth,
-                behavior: 'smooth',
-              });
-            } else if (this.imageViewer.nativeElement.scrollIntoView) {
-              this.imageViewer.nativeElement.lastElementChild.scrollIntoView(false);
-              this.phraseViewer.nativeElement.lastElementChild.scrollIntoView(false);
-            }
-          }, 300);
-        }),
-      );
-  }
+function setPrimaryUrl(doc: any) {
+  if (doc.primaryImageUrl) {
+    doc.$primaryImageUrl = 'https://methackstor.blob.core.windows.net/met-artworks'
+      + `/artwork_images/PrimaryImages_LowRes/${doc.id}.jpg`
+      + '?st=2018-12-22T01%3A16%3A24Z&se=2019-12-23T01%3A16%3A00Z&sp=rwl&sv=2018-03-28&sr=c'
+      + '&sig=xPBaUe2E8oUF2IH6SvZKG4gNQDuCR6KjsPhUb24XKUQ%3D';
+}
 }

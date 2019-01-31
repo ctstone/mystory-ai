@@ -5,6 +5,7 @@ export class Listener {
   private processor: ScriptProcessorNode;
   private source: MediaStreamAudioSourceNode;
   private audioHandler: (event: AudioProcessingEvent) => void;
+  private media: MediaStream;
 
   listening = false;
 
@@ -17,8 +18,8 @@ export class Listener {
     if (this.context.state === 'suspended') {
       this.context.resume();
     }
-    const media = await window.navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    this.source = this.context.createMediaStreamSource(media);
+    this.media = await window.navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    this.source = this.context.createMediaStreamSource(this.media);
     this.processor = this.context.createScriptProcessor(this.bufferSize, this.numChannels, this.numChannels);
 
     this.processor.connect(this.context.destination);
@@ -31,6 +32,7 @@ export class Listener {
     };
     this.processor.addEventListener('audioprocess', this.audioHandler);
     this.listening = true;
+
     return this.source;
   }
 
@@ -38,9 +40,18 @@ export class Listener {
     this.listening = false;
     if (this.processor) {
       this.processor.removeEventListener('audioprocess', this.audioHandler);
-      if (closeStream) {
-        this.source.mediaStream.getAudioTracks()
-          .forEach(track => track.stop());
+      this.processor.disconnect();
+    }
+
+    if (closeStream && this.media) {
+      this.media.getAudioTracks().forEach((track) => track.stop());
+      if (this.source) {
+        if (this.source.mediaStream) {
+          this.source.mediaStream.getAudioTracks().forEach((track) => track.stop);
+        }
+        this.source.disconnect();
+      }
+      if (this.context) {
         this.context.suspend();
       }
     }

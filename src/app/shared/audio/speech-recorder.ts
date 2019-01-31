@@ -34,7 +34,9 @@ export class SpeechRecorder {
   private listener: Listener;
   private converter: AudioConverter;
   private speechWs = new SpeechToTextWebsocket();
-  private stopped: boolean;
+  private stopped = true;
+  private sentAudio = false;
+  private subject: Subject<Recording>;
 
   constructor(context?: AudioContext, outputSampleRate = DEFAULT_OUTPUT_SAMPLE_RATE, bufferSize = DEFAULT_BUFFER_SIZE) {
     context = context || new AudioContext;
@@ -54,7 +56,11 @@ export class SpeechRecorder {
 
   stop() {
     this.listener.stop();
-    this.speechWs.endAudio();
+    if (this.sentAudio) {
+      this.speechWs.endAudio();
+    } else {
+      this.subject.complete();
+    }
     this.stopped = true;
   }
 
@@ -65,16 +71,21 @@ export class SpeechRecorder {
     const recording: Recording = { text: '' };
     const recordingChunks: ArrayBuffer[] = [];
     const parts: { [key: string]: SpeechHypothesis | SpeechPhrase } = {};
-    const subject = new Subject<Recording>();
+    this.subject = new Subject<Recording>();
     this.stopped = false;
+    this.sentAudio = false;
 
     /** call to signal end of recording */
     const stop = (timedout = false) => {
       if (!this.stopped) {
         this.stopped = true;
         this.listener.stop(closeStream);
-        if (timedout) {
+        if (timedout && this.sentAudio) {
           this.speechWs.endAudio();
+        }
+
+        if (!this.sentAudio) {
+          this.subject.complete();
         }
       }
     };
@@ -88,7 +99,7 @@ export class SpeechRecorder {
       if (data.hasOwnProperty('RecognitionStatus')) {
         recording.status = (data as any).RecognitionStatus;
       }
-      subject.next(recording);
+      this.subject.next(recording);
     };
 
     /** speech events */
@@ -108,7 +119,7 @@ export class SpeechRecorder {
       .subscribe(onSpeechChunk);
     const s4 = this.speechWs.turnEnd
       .subscribe(() => {
-        subject.complete();
+        this.subject.complete();
         [s1, s3, s4, s5, s2].forEach((x) => x.unsubscribe());
       });
     const s5 = this.speechWs.speechEnd
@@ -119,6 +130,7 @@ export class SpeechRecorder {
     /** open the microphone */
     this.listener.listen((buffer) => {
       const audio = buffer.getChannelData(0).slice();
+      this.sentAudio = true;
       if (recordingChunks.length === 0) {
         const headChunk = this.converter.toWav(audio, true);
         recordingChunks.push(headChunk);
@@ -135,7 +147,7 @@ export class SpeechRecorder {
       setTimeout(() => stop(true), maxLength);
     }
 
-    return subject.asObservable();
+    return this.subject.asObservable();
   }
 }
 

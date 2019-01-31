@@ -89,26 +89,3 @@ export class AudioConverter {
     }
   }
 }
-
-// function downsample(srcFrame: Float32Array, srcRate: number, dstRate: number) {
-//   if (dstRate === srcRate || dstRate > srcRate) {
-//     return srcFrame;
-//   }
-//   var ratio = srcRate / dstRate;
-//   var dstLength = Math.round(srcFrame.length / ratio);
-
-//   var dstFrame = new Float32Array(dstLength);
-//   var srcOffset = 0;
-//   var dstOffset = 0;
-//   while (dstOffset < dstLength) {
-//     var nextSrcOffset = Math.round((dstOffset + 1) * ratio);
-//     var accum = 0;
-//     var count = 0;
-//     while (srcOffset < nextSrcOffset && srcOffset < srcFrame.length) {
-//       accum += srcFrame[srcOffset++];
-//       count++;
-//     }
-//     dstFrame[dstOffset++] = accum / count;
-//   }
-//   return dstFrame;
-// }

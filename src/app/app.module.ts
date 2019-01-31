@@ -8,13 +8,15 @@ import { AppComponent } from './app.component';
 import { SpeechComponent } from './speech/speech.component';
 import { StoryComponent } from './story/story.component';
 import { HomeComponent } from './home/home.component';
+import { ScrollDirective } from './shared/scroll.directive';
 
 @NgModule({
   declarations: [
     AppComponent,
     SpeechComponent,
     StoryComponent,
-    HomeComponent
+    HomeComponent,
+    ScrollDirective
   ],
   imports: [
     BrowserModule,
