@@ -181,17 +181,20 @@ export class StoryComponent implements OnInit, OnDestroy {
           // this.searchResults.splice(0, 0, ...resp.value);
           this.searchResults = this.searchResults.concat(resp.value);
           setTimeout(() => {
-            const images = this.imageViewer.nativeElement
-              .querySelectorAll('img');
-            this.imageViewer.nativeElement.scrollBy({
-              left: this.imageViewer.nativeElement.scrollWidth,
-              behavior: 'smooth',
-            });
+            if (this.imageViewer.nativeElement.scrollBy) {
+              this.imageViewer.nativeElement.scrollBy({
+                left: this.imageViewer.nativeElement.scrollWidth,
+                behavior: 'smooth',
+              });
 
-            this.phraseViewer.nativeElement.scrollBy({
-              left: this.phraseViewer.nativeElement.scrollWidth,
-              behavior: 'smooth',
-            });
+              this.phraseViewer.nativeElement.scrollBy({
+                left: this.phraseViewer.nativeElement.scrollWidth,
+                behavior: 'smooth',
+              });
+            } else if (this.imageViewer.nativeElement.scrollIntoView) {
+              this.imageViewer.nativeElement.lastElementChild.scrollIntoView(false);
+              this.phraseViewer.nativeElement.lastElementChild.scrollIntoView(false);
+            }
           }, 300);
         }),
       );
