@@ -17,12 +17,12 @@ export class Listener {
     if (this.context.state === 'suspended') {
       this.context.resume();
     }
-    const media = await window.navigator.mediaDevices.getUserMedia({ audio: true });
+    const media = await window.navigator.mediaDevices.getUserMedia({ audio: true, video: false });
     this.source = this.context.createMediaStreamSource(media);
     this.processor = this.context.createScriptProcessor(this.bufferSize, this.numChannels, this.numChannels);
-    this.source
-      .connect(this.processor)
-      .connect(this.context.destination);
+
+    this.processor.connect(this.context.destination);
+    this.source.connect(this.processor);
 
     this.audioHandler = (event) => {
       if (this.listening) {

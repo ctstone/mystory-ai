@@ -9,6 +9,8 @@ import { TextAnalyticsService } from '../shared/text-analytics.service';
 import { SearchService } from '../shared/search.service';
 import { of } from 'rxjs';
 
+const AudioContext = window['AudioContext'] || window['webkitAudioContext'];
+
 @Component({
   selector: 'app-speech',
   templateUrl: './story.component.html',
