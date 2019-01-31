@@ -1,1 +1,89 @@
 /* You can add global styles to this file, and also import other style files */
+
+@font-face {
+  font-family: "MetSans";
+  font-weight: 300;
+  src: url("/assets/fonts/TheMetSans-Light.woff2") format("woff2"), url("/assets/fonts/TheMetSans-Light.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSans";
+  font-style: italic;
+  font-weight: 300;
+  src: url("/assets/fonts/TheMetSans-LightItalic.woff2") format("woff2"), url("/assets/fonts/TheMetSans-LightItalic.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSans";
+  font-weight: 400;
+  src: url("/assets/fonts/TheMetSans-Regular.woff2") format("woff2"), url("/assets/fonts/TheMetSans-Regular.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSans";
+  font-style: italic;
+  font-weight: 400;
+  src: url("/assets/fonts/TheMetSans-RegularItalic.woff2") format("woff2"), url("/assets/fonts/TheMetSans-RegularItalic.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSans";
+  font-weight: 500;
+  src: url("/assets/fonts/TheMetSans-Medium.woff2") format("woff2"), url("/assets/fonts/TheMetSans-Medium.wofff2") format("woff"); }
+
+@font-face {
+  font-family: "MetSans";
+  font-weight: 600;
+  src: url("/assets/fonts/TheMetSans-Semibold.woff2") format("woff2"), url("/assets/fonts/TheMetSans-Semibold.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSans";
+  font-style: italic;
+  font-weight: 600;
+  src: url("/assets/fonts/TheMetSans-SemiboldItalic.woff2") format("woff2"), url("/assets/fonts/TheMetSans-SemiboldItalic.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSans";
+  font-weight: 700;
+  src: url("/assets/fonts/TheMetSans-Bold.woff2") format("woff2"), url("/assets/fonts/TheMetSans-Bold.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSans";
+  font-style: italic;
+  font-weight: 700;
+  src: url("/assets/fonts/TheMetSans-BoldItalic.woff2") format("woff2"), url("/assets/fonts/TheMetSans-BoldItalic.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSerif";
+  font-weight: 400;
+  src: url("/assets/fonts/TheMetSerif-Roman.woff2") format("woff2"), url("/assets/fonts/TheMetSerif-Roman.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSerif";
+  font-style: italic;
+  font-weight: 400;
+  src: url("/assets/fonts/TheMetSerif-Italic.woff2") format("woff2"), url("/assets/fonts/TheMetSerif-Italic.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSerif";
+  font-weight: 600;
+  src: url("/assets/fonts/TheMetSerif-Semibold.woff2") format("woff2"), url("/assets/fonts/TheMetSerif-Semibold.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSerif";
+  font-style: italic;
+  font-weight: 600;
+  src: url("/assets/fonts/TheMetSerif-SemiboldItalic.woff2") format("woff2"), url("/assets/fonts/TheMetSerif-SemiboldItalic.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSerif";
+  font-weight: 700;
+  src: url("/assets/fonts/TheMetSerif-Bold.woff2") format("woff2"), url("/assets/fonts/TheMetSerif-Bold.woff") format("woff"); }
+
+@font-face {
+  font-family: "MetSerif";
+  font-style: italic;
+  font-weight: 700;
+  src: url("/assets/fonts/TheMetSerif-BoldItalic.woff2") format("woff2"), url("/assets/fonts/TheMetSerif-BoldItalic.woff") format("woff"); }
+
+
+body {
+  font-family: MetSans;
+  font-weight: normal;
+}

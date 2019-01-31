@@ -83,7 +83,7 @@ export class StoryComponent implements OnInit {
       throw new Error('Not connected');
     }
     const chunks: ArrayBuffer[] = [];
-    this.placeholder = 'WAIT (mic)';
+    this.placeholder = 'WAIT (microphone)';
     this.recorder = new Recorder(4096, 16000);
     this.recorder.start()
       .subscribe(
@@ -92,7 +92,14 @@ export class StoryComponent implements OnInit {
           this.connection.processAudio(chunk);
           chunks.push(chunk);
         },
-        (err) => console.error(err),
+        (err) => {
+          if (err.message) {
+            alert('Cannot connect to your microphone: ' + err.message);
+          } else {
+            alert('Cannot connect to your microphone');
+          }
+          this.placeholder = '';
+        },
         () => {
           this.connection.processAudio(null);
           const blob = new Blob(chunks, { type: 'audio/wav' });

@@ -30,7 +30,7 @@
 
 <div style="height:200px;margin-bottom:100px; background:#eee" class="text-muted d-flex flex-column align-items-center justify-content-center" *ngIf="!docs.length && !recording">
   <h1 >
-    <span>
+    <span style="font-weight: lighter;">
     CLICK THE <i class="small mx-2 fas fa-microphone"></i> TO GET STARTED
     </span>
   </h1>
@@ -45,7 +45,7 @@
 </ng-template>
 
 <ng-template #showNotConnected>
-  <h3 class="text-muted" *ngIf="connecting else showDisconnected">
+  <h3 class="text-muted" style="font-weight: lighter" *ngIf="connecting else showDisconnected">
     CONNECTING
   </h3>
 </ng-template>
