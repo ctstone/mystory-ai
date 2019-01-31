@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { tap, takeLast, flatMap, filter } from 'rxjs/operators';
+import { tap, takeLast, flatMap, filter, debounce, debounceTime, distinctUntilChanged, delay } from 'rxjs/operators';
+import { Subject, empty } from 'rxjs';
 
 import { SpeechRecorder, Recording } from '../shared/audio/speech-recorder';
 import { ConfigService } from '../shared/config.service';
@@ -29,6 +30,7 @@ export class StoryComponent implements OnInit, OnDestroy {
   tag: string;
   recording: Recording;
   phrases: string[] = [];
+  hypothesis: string;
   continuousListen = false;
 
   get connected() { return this.stt.connected; }
@@ -50,6 +52,7 @@ export class StoryComponent implements OnInit, OnDestroy {
   private stt = new SpeechRecorder(this.context, 16000);
   private startingMic: boolean;
   private stopped: boolean;
+  private recognizedPhrases = new Subject<string>();
 
   constructor(
     private config: ConfigService,
@@ -59,6 +62,15 @@ export class StoryComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     await this.connect();
+
+    this.recognizedPhrases
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        filter((x) => !!x),
+        flatMap((text) => this.applyQuery(text))
+      )
+      .subscribe();
   }
 
   async ngOnDestroy() {
@@ -103,32 +115,35 @@ export class StoryComponent implements OnInit, OnDestroy {
 
   private _listen() {
     this.inputControl.reset();
-    return this.stt.record(6000, false)
+    return this.stt.record(10000, false)
       .pipe(
         tap((recording) => {
           this.startingMic = false;
           this.recording = recording;
+          this.inputControl.setValue(recording.text);
+          this.hypothesis = recording.text;
+          this.recognizedPhrases.next(recording.text);
         }),
-        tap((recording) => this.inputControl.setValue(recording.text)),
         takeLast(1),
-        flatMap((recording) => {
+        tap((recording) => {
+          this.hypothesis = null;
           if (recording.text) {
             this.phrases.push(recording.text);
-            this.applyQuery(this.inputControl.value).subscribe();
           }
-
-          return this.stopped ? of(null) : this._listen();
         }),
+        // delay(100),
+        flatMap(() => this.stopped ? of(true) : this._listen()),
       );
   }
 
   private applyQuery(query: string) {
+    console.log('QUERY', query);
     if (!this.useKeyPhraseControl.value) {
       this.keyPhrases = null;
     }
     return this.useKeyPhraseControl.value
       ? this.keyPhraseSearch(query)
-      : this._search({ search: query, filter: 'hasPrimaryImage', top: 4 });
+      : this._search({ search: query, filter: 'hasPrimaryImage', top: 2 });
   }
 
   private keyPhraseSearch(text: string) {
