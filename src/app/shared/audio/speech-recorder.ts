@@ -128,7 +128,7 @@ export class SpeechRecorder {
         recordingChunks.push(chunk);
         this.speechWs.audio(chunk);
       }
-    });
+    }).catch((err) => alert(err));
 
     /** stop listening after some time */
     if (maxLength) {
