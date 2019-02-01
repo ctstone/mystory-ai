@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-NJXGk7R+8gWGBdutmr+/d6XDokLwQhF1U3VA7FhvBDlOq7cNdI69z7NQdnXxcF7k"
   crossorigin="anonymous">
-<!-- 
+
 <nav class="navbar navbar-dark bg-dark">
   <div class="container">
     <a class="navbar-brand" routerLink="">
@@ -14,19 +14,22 @@
         <a class="nav-link text-white" routerLink="story" routerLinkActive="active">Story</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link text-white" routerLink="speech" routerLinkActive="active">Search</a>
+        <a class="nav-link text-white" routerLink="search" routerLinkActive="active">Search</a>
       </li>
-      <li class="nav-item" *ngFor="let x of ['Visit', 'Exhibitions', 'Events', 'Art', 'Learn', 'Shop']">
-        <a class="nav-link text-white" routerLink="">{{x}}</a>
+      <li class="nav-item">
+        <a class="nav-link text-white" routerLink="about" routerLinkActive="active">About</a>
       </li>
     </ul>
   </div>
 </nav>
 
-<div class="container">
-  <router-outlet></router-outlet>
-</div> -->
+<div class="container" style="padding-top: 20px;">
+  <p class="lead text-muted text-center">
+    Hi! <b>Project Storyteller</b>
+    is a prototype concept which was created over a two-day hackathon
+    with collaborators across <b>The Met</b>, <b>Microsoft</b>, and <b>MIT</b>.
+    <a class="ml-2 small" target="_blank" href="http://www.microsoft.com/inculture.com/artmeetsai">Learn more</a>
+  </p>
 
-<div>
   <router-outlet></router-outlet>
 </div>

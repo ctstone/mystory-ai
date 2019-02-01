@@ -264,14 +264,14 @@ interface Deferred<T> {
 }
 
 function defer<T = any>(): Deferred<T> {
-  const d: Deferred<T> = {
+  const deferred: Deferred<T> = {
     resolve: null,
     reject: null,
     promise: null,
   };
-  d.promise = new Promise<T>((resolve, reject) => {
-    d.resolve = resolve;
-    d.reject = reject;
+  deferred.promise = new Promise<T>((resolve, reject) => {
+    deferred.resolve = resolve;
+    deferred.reject = reject;
   });
-  return d;
+  return deferred;
 }

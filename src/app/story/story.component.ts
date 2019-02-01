@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Recorder } from '../shared/audio/recorder2';
+import { Recorder } from '../shared/audio/recorder';
 import { SpeechToTextSocket } from '../shared/audio/stt-ws';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ConfigService } from '../shared/config.service';
@@ -132,11 +132,11 @@ export class StoryComponent implements OnInit {
   }
 }
 
-function setPrimaryUrl(doc: any) {
+export function setPrimaryUrl(doc: any) {
   if (doc.primaryImageUrl) {
     doc.$primaryImageUrl = 'https://methackstor.blob.core.windows.net/met-artworks'
       + `/artwork_images/PrimaryImages_LowRes/${doc.id}.jpg`
       + '?st=2018-12-22T01%3A16%3A24Z&se=2019-12-23T01%3A16%3A00Z&sp=rwl&sv=2018-03-28&sr=c'
       + '&sig=xPBaUe2E8oUF2IH6SvZKG4gNQDuCR6KjsPhUb24XKUQ%3D';
-}
+  }
 }

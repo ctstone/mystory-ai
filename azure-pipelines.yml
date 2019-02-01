@@ -2,7 +2,7 @@ variables:
   dockerId: methackcr
   dockerRepoName: methack-ui
   azureSubscription: Azure
-  webAppName: methack
+  webAppName1: methack
   dockerRegistry: $(dockerId).azurecr.io
   imageName: $(dockerRegistry)/$(dockerRepoName)
   buildArtifactName: Build
@@ -69,8 +69,8 @@ jobs:
         env:
           pswd: $(dockerPassword)
 
-  # WEB JOB
-  - job: Web
+  # WEB JOB 1
+  - job: Web1
     dependsOn: Docker
     pool:
       vmImage: ubuntu-16.04
@@ -85,7 +85,7 @@ jobs:
           connectionType: AzureRM
           azureSubscription: $(azureSubscription)
           appType: webAppContainer
-          webAppName: $(webAppName)
+          webAppName: $(webAppName1)
           dockerNamespace: $(dockerRegistry)
           dockerRepository: $(dockerRepoName)
           dockerImageTag: $(Build.BuildId)
