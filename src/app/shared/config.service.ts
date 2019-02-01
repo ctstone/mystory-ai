@@ -10,6 +10,7 @@ export class ConfigService {
 
   speechKey: string;
   speechEndpoint: string;
+  speechRegion: string;
   searchService: string;
   searchKey: string;
   textKey: string;
@@ -19,7 +20,7 @@ export class ConfigService {
     private http: HttpClient) { }
 
   load() {
-    return this.http.get<any>('https://methackstor.blob.core.windows.net/web/config.json')
+    return this.http.get<any>('https://methackstor.blob.core.windows.net/web/config.json?d=' + new Date().getTime())
       .pipe(
         tap((resp) => {
           Object.keys(resp).forEach((x) => this[x] = resp[x]);

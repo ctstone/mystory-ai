@@ -20,6 +20,21 @@
         <a class="nav-link text-white" routerLink="about" routerLinkActive="active">About</a>
       </li>
     </ul>
+
+    <select class="form-control form-control-sm" style="width: auto;" [formControl]="languageSourceControl">
+      <optgroup label="I am speaking...">
+        <option *ngFor="let lang of TRANSLATION_SOURCE_LANGUAGES" [ngValue]="lang">{{lang.name}}</option>
+      </optgroup>
+    </select>
+
+    <i class="fal fa-arrow-alt-right text-light mx-3"></i>
+
+    <select class="form-control form-control-sm" style="width: auto;" [formControl]="languageTargetControl">
+      <optgroup label="Translate my speech to...">
+        <option [ngValue]="null">NO TRANSLATION</option>
+        <option *ngFor="let lang of TRANSLATION_TARGET_LANGUAGES" [ngValue]="lang">{{lang.name}}</option>
+      </optgroup>
+    </select>
   </div>
 </nav>
 

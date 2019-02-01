@@ -1,12 +1,13 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { Recorder } from '../shared/audio/recorder';
-import { SpeechToTextSocket } from '../shared/audio/stt-ws';
+import { SpeechSocket, LanguageDefinition, SpeechEvent } from '../shared/audio/speech-ws';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ConfigService } from '../shared/config.service';
 import { FormControl } from '@angular/forms';
 import { tap, filter, flatMap, map } from 'rxjs/operators';
 import { SearchService } from '../shared/search.service';
 import { ScrollDirective } from '../shared/scroll.directive';
+import { SharedService } from '../shared/shared.service';
 
 @Component({
   selector: 'app-story',
@@ -34,38 +35,54 @@ export class StoryComponent implements OnInit {
   placeholder = '';
 
   private recorder: Recorder;
-  private connection: SpeechToTextSocket;
+  private connection: SpeechSocket;
+  private sourceLanguage: LanguageDefinition;
+  private targetLanguage: LanguageDefinition;
 
   constructor(
     private conf: ConfigService,
     private search: SearchService,
+    private shared: SharedService,
     private sanitizer: DomSanitizer) { }
 
   ngOnInit() {
-    this.connect();
+    this.shared.get<LanguageDefinition>('sourceLang')
+      .subscribe((language) => {
+        this.sourceLanguage = language;
+        if (this.connection) {
+          this.connection.close();
+        }
+        this.connect();
+      });
+
+    this.shared.get<LanguageDefinition>('targetLang')
+      .subscribe((language) => {
+        this.targetLanguage = language;
+        if (this.connection) {
+          this.connection.close();
+        }
+        this.connect();
+      });
   }
 
   connect() {
     this.connecting = true;
-    this.connection = new SpeechToTextSocket(this.conf.speechEndpoint, this.conf.speechKey);
+    this.connection = this.getConnection();
     this.connection.events
       .pipe(
-        tap((event) => {
-          if (event.type === 'phrase' && event.phrase.DisplayText) {
-            this.phrases.push(event.phrase.DisplayText);
-            this.phrasesChild.scrollToEnd();
-          } else if (event.type === 'turnStart') {
-            this.inputControl.enable();
-            this.inputControl.reset();
-          } else if (event.type === 'turnEnd') {
-            this.inputControl.disable();
-          } else if (event.type === 'connected') {
-            this.connecting = false;
-          }
+        tap((event) => this.onSpeechEvent(event)),
+        filter((event) =>
+          (event.type === 'speech.hypothesis' && !!event.speechHypothesis.Text)
+          || (event.type === 'translation.hypothesis'
+            && !!event.translationHypothesis.Translation
+            && !!event.translationHypothesis.Translation.Translations.length)),
+        map((event) => {
+          return event.type === 'speech.hypothesis'
+            ? event.speechHypothesis.Text
+            : event.translationHypothesis.Translation.Translations[0].Text;
         }),
-        filter((event) => event.type === 'hypothesis' && !!event.hypothesis.Text),
-        tap((event) => this.inputControl.setValue(event.hypothesis.Text)),
-        flatMap((event) => this.executeSearch(event.hypothesis.Text)),
+        tap((text) => this.inputControl.setValue(text)),
+        flatMap((text) => this.executeSearch(text)),
         tap((docs) => {
           for (const doc of docs) {
             if (!this.docs.some((d) => d.id === doc.id)) {
@@ -115,6 +132,37 @@ export class StoryComponent implements OnInit {
   stop() {
     if (this.recorder.state === 'recording') {
       this.recorder.stop();
+    }
+  }
+
+  private onSpeechEvent(event: SpeechEvent) {
+
+    if (event.type === 'speech.phrase' && event.speechPhrase.DisplayText) {
+      this.phrases.push(event.speechPhrase.DisplayText);
+      this.phrasesChild.scrollToEnd();
+    } else if (
+      event.type === 'translation.phrase'
+      && event.translationPhrase.Translation
+      && event.translationPhrase.Translation.Translations.length) {
+      this.phrases.push(event.translationPhrase.Translation.Translations[0].Text);
+      this.phrasesChild.scrollToEnd();
+    } else if (event.type === 'turn.start') {
+      this.inputControl.enable();
+      this.inputControl.reset();
+    } else if (event.type === 'turn.end') {
+      this.inputControl.disable();
+    } else if (event.type === 'connected') {
+      this.connecting = false;
+    }
+  }
+
+  private getConnection() {
+    console.log(this.sourceLanguage, this.targetLanguage);
+
+    if (this.targetLanguage) {
+      return SpeechSocket.s2s(this.conf.speechRegion, this.conf.speechKey, this.sourceLanguage.code, this.targetLanguage.code);
+    } else {
+      return SpeechSocket.stt(this.conf.speechRegion, this.conf.speechKey, this.sourceLanguage.code);
     }
   }
 
