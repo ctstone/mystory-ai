@@ -4,7 +4,7 @@ import { SpeechSocket, LanguageDefinition, SpeechEvent } from '../shared/audio/s
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ConfigService } from '../shared/config.service';
 import { FormControl } from '@angular/forms';
-import { tap, filter, flatMap, map } from 'rxjs/operators';
+import { tap, filter, flatMap, map, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { SearchService } from '../shared/search.service';
 import { ScrollDirective } from '../shared/scroll.directive';
 import { SharedService } from '../shared/shared.service';
@@ -99,6 +99,8 @@ export class StoryComponent implements OnInit {
             ? event.speechHypothesis.Text
             : event.translationHypothesis.Translation.Translations[0].Text;
         }),
+        distinctUntilChanged(),
+        debounceTime(250),
         tap((text) => this.inputControl.setValue(text)),
         flatMap((text) => this.executeSearch(text)),
         tap(([query, docs]: [any, any[]]) => {
@@ -116,7 +118,6 @@ export class StoryComponent implements OnInit {
                   this.highlights.unshift({ field, text, id, search });
                 }
               }
-              console.log(this.highlights);
             }
 
             if (numDocs >= MAX_DOCS_PER_REQUEST) {
@@ -126,7 +127,9 @@ export class StoryComponent implements OnInit {
           this.imagesChild.scrollToEnd();
         }),
       )
-      .subscribe();
+      .subscribe(
+        () => void 0,
+        (err) => alert((err.message || 'Unknown Error') + '. Try refreshing the page.'));
   }
 
   record() {
