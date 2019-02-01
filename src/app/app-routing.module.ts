@@ -8,9 +8,9 @@ import { AboutComponent } from './about/about.component';
 
 const routes: Routes = [
   { path: '', canActivate: [ConfigGuardGuard], children: [
-    { path: '', pathMatch: 'full', redirectTo: 'story' },
+    { path: '', component: StoryComponent },
     { path: 'search', component: SpeechComponent },
-    { path: 'story', component: StoryComponent },
+    { path: 'story',  pathMatch: 'full', redirectTo: '' },
     { path: 'about', component: AboutComponent },
   ] }
 ];
