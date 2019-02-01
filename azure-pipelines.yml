@@ -13,37 +13,37 @@ trigger:
 jobs:
 
   # BUILD JOB
-  # - job: Build
-  #   pool:
-  #     vmImage: ubuntu-16.04
-  #   steps:
+  - job: Build
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
 
-  #     # Use Node 8.x
-  #     - task: NodeTool@0
-  #       inputs:
-  #         versionSpec: 8.x
+      # Use Node 8.x
+      - task: NodeTool@0
+        inputs:
+          versionSpec: 8.x
 
-  #     # Build the node app
-  #     - script: npm install
+      # Build the node app
+      - script: npm install
 
-  #     # Copy files to staging, excluding git and npm files
-  #     - task: CopyFiles@2
-  #       inputs:
-  #         contents: |
-  #           **/*
-  #           !.git/**
-  #           !node_modules/**
-  #         targetFolder: $(Build.ArtifactStagingDirectory)
+      # Copy files to staging, excluding git and npm files
+      - task: CopyFiles@2
+        inputs:
+          contents: |
+            **/*
+            !.git/**
+            !node_modules/**
+          targetFolder: $(Build.ArtifactStagingDirectory)
       
-  #     # Publish source+build files
-  #     - task: PublishPipelineArtifact@0
-  #       inputs:
-  #         artifactName: $(buildArtifactName)
+      # Publish source+build files
+      - task: PublishPipelineArtifact@0
+        inputs:
+          artifactName: $(buildArtifactName)
   #         targetPath: $(Build.ArtifactStagingDirectory)
 
   # DOCKER JOB
   - job: Docker
-    # dependsOn: Build
+    dependsOn: Build
     condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
     pool:
       vmImage: ubuntu-16.04
