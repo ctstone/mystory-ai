@@ -1,6 +1,8 @@
 import { Observable, Subject } from 'rxjs';
 import { AudioConverter } from './audio-converter';
 
+const AudioContext = window['AudioContext'] || window['webkitAudioContext'];
+
 export class Recorder {
 
   timedOut = false;
