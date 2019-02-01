@@ -43,7 +43,7 @@ jobs:
 
   # DOCKER JOB
   - job: Docker
-    dependsOn: Build
+    # dependsOn: Build
     condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
     pool:
       vmImage: ubuntu-16.04
