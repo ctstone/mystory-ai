@@ -63,6 +63,8 @@ export class StoryComponent implements OnInit {
         }
         this.connect();
       });
+
+    this.inputControl.disable();
   }
 
   connect() {
@@ -119,11 +121,11 @@ export class StoryComponent implements OnInit {
         },
         () => {
           this.connection.processAudio(null);
-          const blob = new Blob(chunks, { type: 'audio/wav' });
-          const url = URL.createObjectURL(blob);
-          this.wavUrl = this.sanitizer.bypassSecurityTrustUrl(url);
-          this.docs.length = 0;
-          this.phrases.length = 0;
+          // const blob = new Blob(chunks, { type: 'audio/wav' });
+          // const url = URL.createObjectURL(blob);
+          // this.wavUrl = this.sanitizer.bypassSecurityTrustUrl(url);
+          // this.docs.length = 0;
+          // this.phrases.length = 0;
           this.placeholder = '';
         }
       );
