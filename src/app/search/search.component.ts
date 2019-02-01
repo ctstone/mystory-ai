@@ -10,9 +10,9 @@ import { AppInsights } from 'applicationinsights-js';
 import { setPrimaryUrl, INDEX_NAME } from '../story/story.component';
 
 @Component({
-  selector: 'app-speech',
-  templateUrl: './speech.component.html',
-  styleUrls: ['./speech.component.css']
+  selector: 'app-search',
+  templateUrl: './search.component.html',
+  styleUrls: ['./search.component.css']
 })
 export class SpeechComponent implements OnInit {
 
