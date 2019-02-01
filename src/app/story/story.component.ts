@@ -9,6 +9,20 @@ import { SearchService } from '../shared/search.service';
 import { ScrollDirective } from '../shared/scroll.directive';
 import { SharedService } from '../shared/shared.service';
 
+const SEARCH_FIELDS = 'department, title, culture, period, dynasty, reign, portfolio, artistDisplayName'
+  + ', artistDisplayBio, artistNationality, medium, city, state, county, country, region, subregion, locale'
+  + ', locus, excavation, river, classification, tags';
+
+export const INDEX_NAME = 'artworks9';
+const MAX_DOCS_PER_REQUEST = 2;
+
+interface Highlight {
+  id: string;
+  field: string;
+  text: string;
+  search: string;
+}
+
 @Component({
   selector: 'app-story',
   templateUrl: './story.component.html',
@@ -32,7 +46,9 @@ export class StoryComponent implements OnInit {
   inputControl = new FormControl();
   docs: any[] = [];
   phrases: string[] = [];
+  highlights: Highlight[] = [];
   placeholder = '';
+  explain = false;
 
   private recorder: Recorder;
   private connection: SpeechSocket;
@@ -85,10 +101,26 @@ export class StoryComponent implements OnInit {
         }),
         tap((text) => this.inputControl.setValue(text)),
         flatMap((text) => this.executeSearch(text)),
-        tap((docs) => {
+        tap(([query, docs]: [any, any[]]) => {
+          let numDocs = 0;
           for (const doc of docs) {
-            if (!this.docs.some((d) => d.id === doc.id)) {
+            const id: string = doc.id;
+            if (!this.docs.some((d) => d.id === id)) {
               this.docs.push(doc);
+              numDocs += 1;
+              const highlights = doc['@search.highlights'];
+              const search = query.search;
+              for (const field in highlights) {
+                if (highlights.hasOwnProperty(field)) {
+                  const text = highlights[field][0];
+                  this.highlights.unshift({ field, text, id, search });
+                }
+              }
+              console.log(this.highlights);
+            }
+
+            if (numDocs >= MAX_DOCS_PER_REQUEST) {
+              break;
             }
           }
           this.imagesChild.scrollToEnd();
@@ -172,12 +204,18 @@ export class StoryComponent implements OnInit {
     const query = {
       search: keywords,
       filter: 'hasPrimaryImage',
-      top: 2,
+      top: 20,
+      searchFields: SEARCH_FIELDS,
+      select: 'id,primaryImageUrl',
+      highlight: SEARCH_FIELDS,
+      highlightPreTag: '<mark>',
+      highlightPostTag: '</mark>'
     };
-    return this.search.query('artworks8', query)
+    return this.search.query(INDEX_NAME, query)
       .pipe(
         map((resp) => resp.value as any[]),
         tap((docs) => docs.forEach(setPrimaryUrl)),
+        map((docs) => [query, docs]),
       );
   }
 }

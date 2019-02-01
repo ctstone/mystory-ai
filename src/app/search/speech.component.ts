@@ -7,7 +7,7 @@ import { ConfigService } from '../shared/config.service';
 import { TextAnalyticsService } from '../shared/text-analytics.service';
 import { SearchService } from '../shared/search.service';
 import { AppInsights } from 'applicationinsights-js';
-import { setPrimaryUrl } from '../story/story.component';
+import { setPrimaryUrl, INDEX_NAME } from '../story/story.component';
 
 @Component({
   selector: 'app-speech',
@@ -122,7 +122,7 @@ export class SpeechComponent implements OnInit {
   private _search(query: any) {
     this.searching = true;
     this.searchResults = null;
-    return this.azsearch.query('artworks8', query)
+    return this.azsearch.query(INDEX_NAME, query)
       .pipe(
         tap((resp) => {
           this.searchResults = resp;

@@ -1,29 +1,28 @@
-
-  <form *ngIf="connected else showNotConnected">
-    <div class="input-group">
-      <input type="search" class="form-control" [formControl]="inputControl" [placeholder]="placeholder">
-      <div class="input-group-append">
-        <button type="button" class="btn btn-danger" (click)="stop()" *ngIf="recording else showNotRecording">
-          <i class="fas fa-stop"></i>
-        </button>
-      </div>
+<form *ngIf="connected else showNotConnected">
+  <div class="input-group">
+    <input type="search" class="form-control" [formControl]="inputControl" [placeholder]="placeholder">
+    <div class="input-group-append">
+      <button type="button" class="btn btn-danger" (click)="stop()" *ngIf="recording else showNotRecording">
+        <i class="fas fa-stop"></i>
+      </button>
     </div>
-  </form>
-
-  <div #imagesElement="appScroll" appScroll class="mt-2" style="overflow: auto; white-space: nowrap;">
-    <ng-container *ngFor="let doc of docs">
-      <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.id}}" *ngIf="doc.$primaryImageUrl">
-        <img style="height:400px; width: auto;" [src]="doc.$primaryImageUrl">
-      </a>
-    </ng-container>
   </div>
+</form>
 
-  <h4 #phrasesElement="appScroll" class="text-muted" appScroll style="padding: 20px; overflow: auto; white-space: nowrap;">
-    <ng-container *ngFor="let phrase of phrases; let last = last">
-      {{phrase}}
-      <span *ngIf="!last" class="mx-1">&bull;</span>
-    </ng-container>
-  </h4>
+<div #imagesElement="appScroll" appScroll class="mt-2" style="overflow: auto; white-space: nowrap;">
+  <ng-container *ngFor="let doc of docs">
+    <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.id}}" *ngIf="doc.$primaryImageUrl">
+      <img style="height:400px; width: auto;" [src]="doc.$primaryImageUrl">
+    </a>
+  </ng-container>
+</div>
+
+<h4 #phrasesElement="appScroll" class="text-muted" appScroll style="padding: 20px 0; overflow: auto; white-space: nowrap;">
+  <ng-container *ngFor="let phrase of phrases; let last = last">
+    {{phrase}}
+    <span *ngIf="!last" class="mx-1">&bull;</span>
+  </ng-container>
+</h4>
 
 <div style="height:100px;margin-bottom:100px; background:#eee; border-radius: 5px;" class="text-muted d-flex flex-column align-items-center justify-content-center" *ngIf="connected && !docs.length && !recording">
   <h1 >
@@ -33,6 +32,20 @@
   </h1>
 </div>
 
+<button type="button" class="btn btn-link pl-0" (click)="explain = explain ? false : true" *ngIf="highlights.length">Explain these results!</button>
+
+<div *ngIf="explain && highlights.length">
+  <ul class="list-group">
+    <li class="list-group-item" *ngFor="let highlight of highlights">
+      <span class="badge badge-light mr-2">{{highlight.field}}</span>
+      <span class="mr-2" [innerHTML]="highlight.text"></span>
+      <a class="small" target="_blank" href="http://www.metmuseum.org/art/collection/search/{{highlight.id}}">{{highlight.id}}</a>
+      <div class="small text-muted">
+        searched for: "{{highlight.search}}""
+      </div>
+    </li>
+  </ul>
+</div>
 
 <ng-template #showNotRecording>
   <button type="button" class="btn btn-success" (click)="record()">
