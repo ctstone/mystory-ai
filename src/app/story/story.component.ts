@@ -4,10 +4,11 @@ import { SpeechSocket, LanguageDefinition, SpeechEvent } from '../shared/audio/s
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ConfigService } from '../shared/config.service';
 import { FormControl } from '@angular/forms';
-import { tap, filter, flatMap, map, distinctUntilChanged, debounceTime } from 'rxjs/operators';
+import { tap, filter, flatMap, map, distinctUntilChanged, debounceTime, catchError } from 'rxjs/operators';
 import { SearchService } from '../shared/search.service';
 import { ScrollDirective } from '../shared/scroll.directive';
 import { SharedService } from '../shared/shared.service';
+import { empty, of } from 'rxjs';
 
 const SEARCH_FIELDS = 'department, title, culture, period, dynasty, reign, portfolio, artistDisplayName'
   + ', artistDisplayBio, artistNationality, medium, city, state, county, country, region, subregion, locale'
@@ -104,6 +105,7 @@ export class StoryComponent implements OnInit {
         tap((text) => this.inputControl.setValue(text)),
         flatMap((text) => this.executeSearch(text)),
         tap(([query, docs]: [any, any[]]) => {
+          if (!docs) { return; }
           let numDocs = 0;
           for (const doc of docs) {
             const id: string = doc.id;
@@ -219,6 +221,7 @@ export class StoryComponent implements OnInit {
         map((resp) => resp.value as any[]),
         tap((docs) => docs.forEach(setPrimaryUrl)),
         map((docs) => [query, docs]),
+        catchError((err) => of([])),
       );
   }
 }
