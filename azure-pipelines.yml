@@ -39,7 +39,7 @@ jobs:
       - task: PublishPipelineArtifact@0
         inputs:
           artifactName: $(buildArtifactName)
-  #         targetPath: $(Build.ArtifactStagingDirectory)
+          targetPath: $(Build.ArtifactStagingDirectory)
 
   # DOCKER JOB
   - job: Docker
