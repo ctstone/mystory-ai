@@ -1,3 +1,7 @@
+<p class="lead text-muted">
+  Try it out by clicking the <b>green microphone</b> button and <i>telling a story</i>!
+</p>
+
 <form *ngIf="connected else showNotConnected">
   <div class="input-group">
     <input type="search" class="form-control" [formControl]="inputControl" [placeholder]="placeholder">
@@ -24,13 +28,13 @@
   </ng-container>
 </h4>
 
-<div style="height:100px;margin-bottom:100px; background:#eee; border-radius: 5px;" class="text-muted d-flex flex-column align-items-center justify-content-center" *ngIf="connected && !docs.length && !recording">
+<!-- <div style="height:100px;margin-bottom:100px; background:#eee; border-radius: 5px;" class="text-muted d-flex flex-column align-items-center justify-content-center" *ngIf="connected && !docs.length && !recording">
   <h1 >
     <span style="font-weight: lighter;">
     CLICK THE <i class="small mx-2 fas fa-microphone"></i> TO GET STARTED
     </span>
   </h1>
-</div>
+</div> -->
 
 <button type="button" class="btn btn-link pl-0" (click)="explain = explain ? false : true" *ngIf="highlights.length">Explain these results!</button>
 

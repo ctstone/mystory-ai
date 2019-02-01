@@ -8,16 +8,17 @@ import { TextAnalyticsService } from '../shared/text-analytics.service';
 import { SearchService } from '../shared/search.service';
 import { AppInsights } from 'applicationinsights-js';
 import { setPrimaryUrl, INDEX_NAME } from '../story/story.component';
+import { Recorder } from '../shared/audio/recorder';
 
 @Component({
   selector: 'app-search',
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.css']
 })
-export class SpeechComponent implements OnInit {
+export class SearchComponent implements OnInit {
 
   inputControl = new FormControl();
-  useKeyPhraseControl = new FormControl(true);
+  useKeyPhraseControl = new FormControl(false);
   keyPhrases: any;
   searchResults: any;
   searching: boolean;

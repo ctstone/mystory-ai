@@ -8,7 +8,7 @@
     </a>
     <ul class="nav nav-pills mr-auto">
       <li class="nav-item">
-        <a class="nav-link text-white" routerLink="story" routerLinkActive="active">Story</a>
+        <a class="nav-link text-white" routerLink="speach" routerLinkActive="active">Story</a>
       </li>
       <li class="nav-item">
         <a class="nav-link text-white" routerLink="search" routerLinkActive="active">Search</a>
@@ -18,7 +18,14 @@
       </li>
     </ul>
 
-    <select class="form-control form-control-sm" style="width: auto;" [formControl]="languageSourceControl">
+    <span
+      triggers="mouseenter:mouseleave"
+      placement="bottom"
+      ngbPopover="Storyteller supports over 60 different languages! Select your speaking language on the left, and optionally, a translation lanuage on the right.">
+      <i class="fas fa-info-circle text-light"></i>
+    </span>
+
+    <select class="form-control form-control-sm ml-2" style="width: auto;" [formControl]="languageSourceControl">
       <optgroup label="I am speaking...">
         <option *ngFor="let lang of TRANSLATION_SOURCE_LANGUAGES" [ngValue]="lang">{{lang.name}}</option>
       </optgroup>
@@ -32,15 +39,15 @@
         <option *ngFor="let lang of TRANSLATION_TARGET_LANGUAGES" [ngValue]="lang">{{lang.name}}</option>
       </optgroup>
     </select>
+
+
   </div>
 </nav>
 
 <div class="container" style="padding-top: 20px;">
-  <p class="lead text-muted text-center">
-    Hi! <b>The Met Storyteller</b>
-    is a prototype concept which was created over a two-day hackathon
-    with collaborators across <b>The Met</b>, <b>Microsoft</b>, and <b>MIT</b>.
-    <a class="ml-2 small" target="_blank" href="http://www.microsoft.com/inculture.com/artmeetsai">Learn more</a>
+  <p class="lead text-muted">
+    <b>Storyteller</b> uses <b>Microsoft <abbr title="Artificial Intelligence">AI</abbr></b> to choose artworks in The Met’s <b>Open Access</b> collection that illustrate any story you might want to tell.
+    <b>Storyteller</b> is a prototype concept which was created over a two-day hackathon with collaborators across <b>The Met</b>, <b>Microsoft</b>, and <b>MIT</b>.
   </p>
 
   <router-outlet></router-outlet>
