@@ -1,6 +1,3 @@
-<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-NJXGk7R+8gWGBdutmr+/d6XDokLwQhF1U3VA7FhvBDlOq7cNdI69z7NQdnXxcF7k"
-  crossorigin="anonymous">
-
 <nav class="navbar navbar-dark bg-dark">
   <div class="container">
     <a class="navbar-brand" routerLink="">
@@ -21,7 +18,7 @@
     <span
       triggers="mouseenter:mouseleave"
       placement="bottom"
-      ngbPopover="Storyteller supports over 60 different languages! Select your speaking language on the left, and optionally, a translation lanuage on the right.">
+      ngbPopover="Storyteller supports over 60 different languages! Select your speaking language on the left, and optionally, a translation language on the right.">
       <i class="fas fa-info-circle text-light"></i>
     </span>
 
@@ -45,10 +42,28 @@
 </nav>
 
 <div class="container" style="padding-top: 20px;">
-  <p class="lead text-muted">
-    <b>Storyteller</b> uses <b>Microsoft <abbr title="Artificial Intelligence">AI</abbr></b> to choose artworks in The Met’s <b>Open Access</b> collection that illustrate any story you might want to tell.
-    <b>Storyteller</b> is a prototype concept which was created over a two-day hackathon with collaborators across <b>The Met</b>, <b>Microsoft</b>, and <b>MIT</b>.
-  </p>
+  <div *ngIf="showInfo else showInfoHidden">
+    <a (click)="toggleInfo()" class="float-right" style="cursor: pointer;">
+      <i class="fal fa-times text-muted"></i>
+    </a>
+    <p class="lead text-muted">
+      <b>Storyteller</b> uses <b>Microsoft <abbr title="Artificial Intelligence">AI</abbr></b> to choose artworks in The Met’s <b>Open Access</b> collection that illustrate any story you might want to tell.
+      <b>Storyteller</b> is a prototype concept which was created over a two-day hackathon with collaborators across <b>The Met</b>, <b>Microsoft</b>, and <b>MIT</b>.
+    </p>
 
+    <p>
+      <a target="_blank" href="https://www.microsoft.com/InCulture/AIMeetsArt" class="btn btn-sm btn-light">
+        <i class="fal fa-code"></i>
+        Learn more about the hackathon.
+      </a>
+    </p>
+  </div>
+  
   <router-outlet></router-outlet>
 </div>
+
+<ng-template #showInfoHidden>
+  <a (click)="toggleInfo()" class="flow-right" style="cursor: pointer;">
+    <i class="fal fa-info-square float-right text-muted"></i>
+  </a>
+</ng-template>

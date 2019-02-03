@@ -14,6 +14,7 @@ export class AppComponent implements OnInit {
 
   languageSourceControl = new FormControl();
   languageTargetControl = new FormControl();
+  showInfo = true;
 
   constructor(private shared: SharedService) { }
 
@@ -23,5 +24,9 @@ export class AppComponent implements OnInit {
     this.languageTargetControl.valueChanges
       .subscribe((val) => this.shared.set('targetLang', val));
     this.languageSourceControl.setValue(TRANSLATION_SOURCE_LANGUAGES.find((x) => x.code === 'en-US'));
+  }
+
+  toggleInfo() {
+    this.showInfo = this.showInfo ? false : true;
   }
 }
