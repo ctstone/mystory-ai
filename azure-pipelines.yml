@@ -2,6 +2,7 @@ variables:
   # <customize>
   prefix: chstone
   azureSubscription: Team Sharat
+  appInsightsTelemetry: 1ae85dd5-a28a-407b-bfd1-a762853981ed
   # </customize>
   
   dockerId: $(prefix)storyteller
@@ -34,7 +35,7 @@ jobs:
         inputs:
           azureSubscription: $(azureSubscription)
           scriptPath: configure.sh
-          arguments: $(prefix)
+          arguments: $(prefix) $(appInsightsTelemetry)
 
       # Copy files to staging, excluding git and npm files
       - task: CopyFiles@2
@@ -68,16 +69,19 @@ jobs:
           artifactName: $(buildArtifactName)
           targetPath: $(Build.ArtifactStagingDirectory)/$(buildArtifactName)
 
+      - task: Docker@1
+        inputs:
+          azureSubscriptionEndpoint: $(azureSubscription)
+          azureContainerRegistry: $(dockerRegistry)
+          command: login
+
       # Build and push the docker image
       - script: |
           docker build -t $(imageName) .
           docker tag $(imageName) $(imageName):$(Build.BuildId)
-          docker login -u $(dockerId) -p $pswd $(dockerRegistry)
           docker push $(imageName)
           docker push $(imageName):$(Build.BuildId)
         workingDirectory: $(Build.ArtifactStagingDirectory)/$(buildArtifactName)
-        env:
-          pswd: $(dockerPassword)
 
   # WEB JOB
   - job: Web

@@ -3,6 +3,7 @@
 set -e
 
 PREFIX=$1
+TELEMETRY_KEY=$2
 
 if [[ -z "$PREFIX" ]]; then
   >&2 echo Please specify a unique prefix as the first argument to this script
@@ -36,5 +37,5 @@ npm run configure -- \
   $SPEECH_KEY \
   $LOCATION \
   $TEXT_KEY \
-  '' \
+  $TELEMETRY_KEY \
   src/assets/conf.json
