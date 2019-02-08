@@ -1,14 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { tap, flatMap, filter } from 'rxjs/operators';
+import { tap, flatMap, filter, mapTo } from 'rxjs/operators';
+import { AppInsights } from 'applicationinsights-js';
 
 import { ConfigService } from '../shared/config.service';
 import { TextAnalyticsService } from '../shared/text-analytics.service';
 import { SearchService } from '../shared/search.service';
-import { AppInsights } from 'applicationinsights-js';
-import { setPrimaryUrl, INDEX_NAME } from '../story/story.component';
-import { Recorder } from '../shared/audio/recorder';
+import { MetService } from '../shared/met.service';
 
 @Component({
   selector: 'app-search',
@@ -36,9 +35,11 @@ export class SearchComponent implements OnInit {
     private azsearch: SearchService,
     private route: ActivatedRoute,
     private router: Router,
+    private met: MetService,
   ) { }
 
   async ngOnInit() {
+    this.met.object('1').subscribe();
     this.route.queryParams
       .pipe(
         tap((qp) => this.inputControl.setValue(qp.q)),
@@ -65,7 +66,7 @@ export class SearchComponent implements OnInit {
 
   onDocumentClick(rank: number, document: any, event: MouseEvent) {
     AppInsights.trackEvent('Click', {
-      SearchServiceName: this.config.searchService,
+      SearchServiceName: this.config.search.account,
       SearchId: this.searchResults['@search.id'],
       ClickedDocId: document.id,
       Rank: rank.toString(),
@@ -78,7 +79,7 @@ export class SearchComponent implements OnInit {
     }
     const query = {
       search: keywords,
-      filter: 'hasPrimaryImage',
+      filter: 'isPublicDomain',
     };
     return this.useKeyPhraseControl.value
       ? this.keyPhraseSearch(keywords)
@@ -112,7 +113,7 @@ export class SearchComponent implements OnInit {
         filter((resp) => resp.documents && resp.documents.length),
         flatMap((resp) => this._search({
           queryType: 'full',
-          filter: 'hasPrimaryImage',
+          filter: 'isPublicDomain',
           search: resp.documents[0].keyPhrases
             .map((x: any) => `"${x}"`)
             .join(' AND '),
@@ -123,12 +124,12 @@ export class SearchComponent implements OnInit {
   private _search(query: any) {
     this.searching = true;
     this.searchResults = null;
-    return this.azsearch.query(INDEX_NAME, query)
+    return this.azsearch.query(this.config.search.index, query)
       .pipe(
+        flatMap((resp) => this.met.assignImageUrls(resp.value).pipe(mapTo(resp))),
         tap((resp) => {
           this.searchResults = resp;
           this.searching = false;
-          this.searchResults.value.forEach(setPrimaryUrl);
         }),
       );
   }

@@ -12,22 +12,22 @@ export class TextAnalyticsService {
     private http: HttpClient) { }
 
   entities(text: string) {
-    return this.http.post<any>(`${this.config.textEndpoint}/v2.1-preview/entities`, {
+    return this.http.post<any>(`https://${this.config.text.region}.api.cognitive.microsoft.com/text/analytics/v2.1-preview/entities`, {
       documents: [
         { language: 'en', id: '1', text }
       ]
     }, {
-      headers: { 'Ocp-Apim-Subscription-Key': this.config.textKey },
+      headers: { 'Ocp-Apim-Subscription-Key': this.config.text.key },
     });
   }
 
   keyPhrases(text: string) {
-    return this.http.post<any>(`${this.config.textEndpoint}/v2.1-preview/keyPhrases`, {
+    return this.http.post<any>(`https://${this.config.text.region}.api.cognitive.microsoft.com/text/analytics/v2.1-preview/keyPhrases`, {
       documents: [
         { language: 'en', id: '1', text }
       ]
     }, {
-        headers: { 'Ocp-Apim-Subscription-Key': this.config.textKey },
+        headers: { 'Ocp-Apim-Subscription-Key': this.config.text.key },
       });
   }
 }

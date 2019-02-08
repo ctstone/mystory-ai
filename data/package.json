@@ -1,0 +1,18 @@
+{
+  "name": "mystory-data",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node .",
+    "conf": "node conf"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "azure-search-client": "^3.1.4",
+    "csv-parse": "^4.3.1",
+    "through2-map": "^3.0.0"
+  }
+}

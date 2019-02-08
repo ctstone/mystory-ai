@@ -4,11 +4,12 @@ import { SpeechSocket, LanguageDefinition, SpeechEvent } from '../shared/audio/s
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { ConfigService } from '../shared/config.service';
 import { FormControl } from '@angular/forms';
-import { tap, filter, flatMap, map, distinctUntilChanged, debounceTime, catchError } from 'rxjs/operators';
+import { tap, filter, flatMap, map, distinctUntilChanged, debounceTime, catchError, mapTo } from 'rxjs/operators';
 import { SearchService } from '../shared/search.service';
 import { ScrollDirective } from '../shared/scroll.directive';
 import { SharedService } from '../shared/shared.service';
-import { empty, of } from 'rxjs';
+import { of, from } from 'rxjs';
+import { MetService } from '../shared/met.service';
 
 const SEARCH_FIELDS = 'department, title, culture, period, dynasty, reign, portfolio, artistDisplayName'
   + ', artistDisplayBio, artistNationality, medium, city, state, county, country, region, subregion, locale'
@@ -60,6 +61,7 @@ export class StoryComponent implements OnInit {
     private conf: ConfigService,
     private search: SearchService,
     private shared: SharedService,
+    private met: MetService,
     private sanitizer: DomSanitizer) { }
 
   ngOnInit() {
@@ -108,8 +110,8 @@ export class StoryComponent implements OnInit {
           if (!docs) { return; }
           let numDocs = 0;
           for (const doc of docs) {
-            const id: string = doc.id;
-            if (!this.docs.some((d) => d.id === id)) {
+            const id: string = doc.objectId;
+            if (!this.docs.some((d) => d.objectId === id)) {
               this.docs.push(doc);
               numDocs += 1;
               const highlights = doc['@search.highlights'];
@@ -158,11 +160,9 @@ export class StoryComponent implements OnInit {
         },
         () => {
           this.connection.processAudio(null);
-          // const blob = new Blob(chunks, { type: 'audio/wav' });
-          // const url = URL.createObjectURL(blob);
-          // this.wavUrl = this.sanitizer.bypassSecurityTrustUrl(url);
-          // this.docs.length = 0;
-          // this.phrases.length = 0;
+          const blob = new Blob(chunks, { type: 'audio/wav' });
+          const url = URL.createObjectURL(blob);
+          this.wavUrl = this.sanitizer.bypassSecurityTrustUrl(url);
           this.placeholder = '';
         }
       );
@@ -199,38 +199,28 @@ export class StoryComponent implements OnInit {
     console.log(this.sourceLanguage, this.targetLanguage);
 
     if (this.targetLanguage) {
-      return SpeechSocket.s2s(this.conf.speechRegion, this.conf.speechKey, this.sourceLanguage.code, this.targetLanguage.code);
+      return SpeechSocket.s2s(this.conf.speech.region, this.conf.speech.key, this.sourceLanguage.code, this.targetLanguage.code);
     } else {
-      return SpeechSocket.stt(this.conf.speechRegion, this.conf.speechKey, this.sourceLanguage.code);
+      return SpeechSocket.stt(this.conf.speech.region, this.conf.speech.key, this.sourceLanguage.code);
     }
   }
 
   private executeSearch(keywords: string) {
     const query = {
       search: keywords,
-      filter: 'hasPrimaryImage',
-      top: 20,
+      filter: 'isPublicDomain',
+      top: 2,
       searchFields: SEARCH_FIELDS,
-      select: 'id,primaryImageUrl',
+      select: 'objectId',
       highlight: SEARCH_FIELDS,
       highlightPreTag: '<mark>',
       highlightPostTag: '</mark>'
     };
     return this.search.query(INDEX_NAME, query)
       .pipe(
-        map((resp) => resp.value as any[]),
-        tap((docs) => docs.forEach(setPrimaryUrl)),
-        map((docs) => [query, docs]),
+        flatMap((resp) => this.met.assignImageUrls(resp.value).pipe(mapTo(resp))),
+        map((resp) => [query, resp.value as any[]]),
         catchError((err) => of([])),
       );
-  }
-}
-
-export function setPrimaryUrl(doc: any) {
-  if (doc.primaryImageUrl) {
-    doc.$primaryImageUrl = 'https://methackstor.blob.core.windows.net/met-artworks'
-      + `/artwork_images/PrimaryImages_LowRes/${doc.id}.jpg`
-      + '?st=2018-12-22T01%3A16%3A24Z&se=2019-12-23T01%3A16%3A00Z&sp=rwl&sv=2018-03-28&sr=c'
-      + '&sig=xPBaUe2E8oUF2IH6SvZKG4gNQDuCR6KjsPhUb24XKUQ%3D';
   }
 }
