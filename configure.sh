@@ -38,4 +38,4 @@ npm run configure -- \
   $LOCATION \
   $TEXT_KEY \
   $TELEMETRY_KEY \
-  src/assets/conf.json
+  dist/assets/conf.json
