@@ -4,7 +4,7 @@ variables:
   azureSubscription: Team Sharat
   # </customize>
   
-  dockerId: $(prefix)toryteller
+  dockerId: $(prefix)storyteller
   webAppName: $(prefix)-storyteller
   dockerRepoName: storyteller-ui
   dockerRegistry: $(dockerId).azurecr.io
