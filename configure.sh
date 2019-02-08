@@ -3,7 +3,6 @@
 set -e
 
 PREFIX=$1
-IMAGE=storyteller-ui
 
 if [[ -z "$PREFIX" ]]; then
   >&2 echo Please specify a unique prefix as the first argument to this script

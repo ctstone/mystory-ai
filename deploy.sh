@@ -71,7 +71,7 @@ az cognitiveservices account create \
 # BUILD APP
 echo Building Node.js application
 npm install
-./configure.sh
+./configure.sh $PREFIX
 
 # BUILD IMAGE
 echo Building Docker image $IMAGE and pushing to $ACR

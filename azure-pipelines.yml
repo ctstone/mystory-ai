@@ -1,10 +1,11 @@
 variables:
   # <customize>
-  dockerId: chstonestoryteller
+  prefix: chstone
   azureSubscription: Team Sharat
-  webAppName: chstone-storyteller
   # </customize>
   
+  dockerId: $(prefix)toryteller
+  webAppName: $(prefix)-storyteller
   dockerRepoName: storyteller-ui
   dockerRegistry: $(dockerId).azurecr.io
   imageName: $(dockerRegistry)/$(dockerRepoName)
@@ -33,6 +34,7 @@ jobs:
         inputs:
           azureSubscription: $(azureSubscription)
           scriptPath: configure.sh
+          arguments: $(prefix)
 
       # Copy files to staging, excluding git and npm files
       - task: CopyFiles@2
