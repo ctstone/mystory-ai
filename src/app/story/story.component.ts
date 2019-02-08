@@ -218,7 +218,6 @@ export class StoryComponent implements OnInit {
     };
     return this.search.query(INDEX_NAME, query)
       .pipe(
-        flatMap((resp) => this.met.assignImageUrls(resp.value).pipe(mapTo(resp))),
         map((resp) => [query, resp.value as any[]]),
         catchError((err) => of([])),
       );

@@ -30,8 +30,8 @@
   <p class="lead" *ngIf="searchResults.value.length === 0">No matches</p>
   <div class="card-columns">
     <div class="card" *ngFor="let doc of searchResults.value; let i = index">
-      <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.objectId}}" (click)="onDocumentClick(i, doc, $event)" *ngIf="doc.images.primarySm">
-        <img class="card-img-top" [src]="doc.images.primarySm">
+      <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.objectId}}" (click)="onDocumentClick(i, doc, $event)">
+        <img class="card-img-top" [appMetObjectId]="doc.objectId">
       </a>
       <div class="card-body">
         <h5 class="card-title">

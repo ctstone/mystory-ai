@@ -1,33 +1,27 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { from, concat, Observable } from 'rxjs';
-import { flatMap, tap, mapTo, concatAll, merge, bufferCount } from 'rxjs/operators';
+import { from, concat, Observable, of } from 'rxjs';
+import { flatMap, tap, mapTo, concatAll, merge, bufferCount, map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MetService {
 
+  private objectCache = new Map<string, any>();
+
   constructor(private http: HttpClient) { }
 
   object(id: string) {
-    return this.http.get<any>(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`);
+    if (this.objectCache.has(id)) {
+      return of(this.objectCache.get(id));
+    } else {
+      return this.http.get<any>(`https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`)
+        .pipe(tap((resp) => this.objectCache.set(id, resp)));
+    }
   }
 
-  assignImageUrls(docs: Array<{objectId: string}>): Observable<Array<{objectId: string, images: any}>> {
-    return from(docs)
-      .pipe(
-        flatMap((doc) => this.object(doc.objectId)
-          .pipe(tap((resp) => {
-            (doc as any).images = {
-              primary: resp.primaryImage,
-              primarySm: resp.primaryImageSmall,
-              alt: resp.additionalImages,
-            };
-          })),
-        ),
-        bufferCount(docs.length),
-        mapTo(docs as any),
-      );
+  getSmallImageUrl(objectId: string) {
+    return this.object(objectId).pipe(map((resp) => resp.primaryImageSmall));
   }
 }

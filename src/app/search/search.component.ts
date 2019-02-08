@@ -39,7 +39,6 @@ export class SearchComponent implements OnInit {
   ) { }
 
   async ngOnInit() {
-    this.met.object('1').subscribe();
     this.route.queryParams
       .pipe(
         tap((qp) => this.inputControl.setValue(qp.q)),
@@ -126,7 +125,7 @@ export class SearchComponent implements OnInit {
     this.searchResults = null;
     return this.azsearch.query(this.config.search.index, query)
       .pipe(
-        flatMap((resp) => this.met.assignImageUrls(resp.value).pipe(mapTo(resp))),
+        // flatMap((resp) => this.met.assignImageUrls(resp.value).pipe(mapTo(resp))),
         tap((resp) => {
           this.searchResults = resp;
           this.searching = false;

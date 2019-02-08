@@ -15,8 +15,8 @@
 
 <div #imagesElement="appScroll" appScroll class="mt-2" style="overflow: auto; white-space: nowrap;">
   <ng-container *ngFor="let doc of docs">
-    <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.objectId}}" *ngIf="doc.images.primarySm">
-      <img style="height:400px; width: auto;" [src]="doc.images.primarySm">
+    <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.objectId}}">
+      <img style="height:400px; width: auto;" [appMetObjectId]="doc.objectId">
     </a>
   </ng-container>
 </div>
