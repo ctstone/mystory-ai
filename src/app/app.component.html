@@ -1,11 +1,12 @@
 <nav class="navbar navbar-dark bg-dark">
   <div class="container">
     <a class="navbar-brand" routerLink="">
-      <i class="fas fa-book-open fa-2x fa-fw" ></i>
+      <i class="fas fa-book-open fa-2x fa-fw"></i>
     </a>
     <ul class="nav nav-pills mr-auto">
       <li class="nav-item">
-        <a class="nav-link text-white" routerLink="speach" routerLinkActive="active">Story</a>
+        <a class="nav-link text-white" routerLink="" routerLinkActive="active" [routerLinkActiveOptions]="{exact:
+true}">Story</a>
       </li>
       <li class="nav-item">
         <a class="nav-link text-white" routerLink="search" routerLinkActive="active">Search</a>
@@ -15,9 +16,7 @@
       </li>
     </ul>
 
-    <span
-      triggers="mouseenter:mouseleave"
-      placement="bottom"
+    <span triggers="mouseenter:mouseleave" placement="bottom"
       ngbPopover="Storyteller supports over 60 different languages! Select your speaking language on the left, and optionally, a translation language on the right.">
       <i class="fas fa-info-circle text-light"></i>
     </span>
@@ -47,8 +46,10 @@
       <i class="fal fa-times text-muted"></i>
     </a>
     <p class="lead text-muted">
-      <b>Storyteller</b> uses <b>Microsoft <abbr title="Artificial Intelligence">AI</abbr></b> to choose artworks in The Met’s <b>Open Access</b> collection that illustrate any story you might want to tell.
-      <b>Storyteller</b> is a prototype concept which was created over a two-day hackathon with collaborators across <b>The Met</b>, <b>Microsoft</b>, and <b>MIT</b>.
+      <b>Storyteller</b> uses <b>Microsoft <abbr title="Artificial Intelligence">AI</abbr></b> to choose artworks in The
+      Met’s <b>Open Access</b> collection that illustrate any story you might want to tell.
+      <b>Storyteller</b> is a prototype concept which was created over a two-day hackathon with collaborators across
+      <b>The Met</b>, <b>Microsoft</b>, and <b>MIT</b>.
     </p>
 
     <p>
@@ -58,7 +59,7 @@
       </a>
     </p>
   </div>
-  
+
   <router-outlet></router-outlet>
 </div>
 

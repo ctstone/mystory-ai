@@ -7,13 +7,15 @@ import { StoryComponent } from './story/story.component';
 import { AboutComponent } from './about/about.component';
 
 const routes: Routes = [
-  { path: '', canActivate: [ConfigGuardGuard], children: [
-    { path: '', redirectTo: 'speach', pathMatch: 'full' },
-    { path: 'search', component: SearchComponent },
-    { path: 'story',  redirectTo: 'speach', pathMatch: 'full' },
-    { path: 'speach',  component: StoryComponent },
-    { path: 'about', component: AboutComponent },
-  ] }
+  {
+    path: '', canActivate: [ConfigGuardGuard], children: [
+      { path: '', component: StoryComponent, pathMatch: 'full' },
+      { path: 'search', component: SearchComponent },
+      { path: 'story', redirectTo: 'speech', pathMatch: 'full' },
+      { path: 'about', component: AboutComponent },
+      { path: '*', redirectTo: '' }
+    ]
+  }
 ];
 
 @NgModule({
