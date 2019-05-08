@@ -13,7 +13,7 @@ const routes: Routes = [
       { path: 'search', component: SearchComponent },
       { path: 'story', redirectTo: 'speech', pathMatch: 'full' },
       { path: 'about', component: AboutComponent },
-      { path: '*', redirectTo: '' }
+      { path: '**', redirectTo: '' }
     ]
   }
 ];
