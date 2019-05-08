@@ -15,8 +15,8 @@
 
 <div #imagesElement="appScroll" appScroll class="mt-2" style="overflow: auto; white-space: nowrap;">
   <ng-container *ngFor="let doc of docs">
-    <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.id}}" *ngIf="doc.$primaryImageUrl">
-      <img style="height:400px; width: auto;" [src]="doc.$primaryImageUrl">
+    <a target="_blank" href="http://www.metmuseum.org/art/collection/search/{{doc.objectId}}">
+      <img style="height:400px; width: auto;" [appMetObjectId]="doc.objectId">
     </a>
   </ng-container>
 </div>
@@ -43,7 +43,7 @@
     <li class="list-group-item" *ngFor="let highlight of highlights">
       <span class="badge badge-light mr-2">{{highlight.field}}</span>
       <span class="mr-2" [innerHTML]="highlight.text"></span>
-      <a class="small" target="_blank" href="http://www.metmuseum.org/art/collection/search/{{highlight.id}}">{{highlight.id}}</a>
+      <a class="small" target="_blank" href="http://www.metmuseum.org/art/collection/search/{{highlight.objectId}}">{{highlight.objectId}}</a>
       <div class="small text-muted">
         searched for: "{{highlight.search}}""
       </div>

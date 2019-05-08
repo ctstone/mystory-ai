@@ -1,8 +1,13 @@
 variables:
-  dockerId: methackcr
-  dockerRepoName: methack-ui
-  azureSubscription: Azure
-  webAppName1: methack
+  # <customize>
+  prefix: chstone
+  azureSubscription: Team Sharat
+  appInsightsTelemetry: 1ae85dd5-a28a-407b-bfd1-a762853981ed
+  # </customize>
+  
+  dockerId: $(prefix)storyteller
+  webAppName: $(prefix)-storyteller
+  dockerRepoName: storyteller-ui
   dockerRegistry: $(dockerId).azurecr.io
   imageName: $(dockerRegistry)/$(dockerRepoName)
   buildArtifactName: Build
@@ -25,6 +30,12 @@ jobs:
 
       # Build the node app
       - script: npm install
+
+      - task: AzureCLI@1
+        inputs:
+          azureSubscription: $(azureSubscription)
+          scriptPath: configure.sh
+          arguments: $(prefix) $(appInsightsTelemetry)
 
       # Copy files to staging, excluding git and npm files
       - task: CopyFiles@2
@@ -58,19 +69,22 @@ jobs:
           artifactName: $(buildArtifactName)
           targetPath: $(Build.ArtifactStagingDirectory)/$(buildArtifactName)
 
+      - task: Docker@1
+        inputs:
+          azureSubscriptionEndpoint: $(azureSubscription)
+          azureContainerRegistry: $(dockerRegistry)
+          command: login
+
       # Build and push the docker image
       - script: |
           docker build -t $(imageName) .
           docker tag $(imageName) $(imageName):$(Build.BuildId)
-          docker login -u $(dockerId) -p $pswd $(dockerRegistry)
           docker push $(imageName)
           docker push $(imageName):$(Build.BuildId)
         workingDirectory: $(Build.ArtifactStagingDirectory)/$(buildArtifactName)
-        env:
-          pswd: $(dockerPassword)
 
-  # WEB JOB 1
-  - job: Web1
+  # WEB JOB
+  - job: Web
     dependsOn: Docker
     pool:
       vmImage: ubuntu-16.04
@@ -85,7 +99,7 @@ jobs:
           connectionType: AzureRM
           azureSubscription: $(azureSubscription)
           appType: webAppContainer
-          webAppName: $(webAppName1)
+          webAppName: $(webAppName)
           dockerNamespace: $(dockerRegistry)
           dockerRepository: $(dockerRepoName)
           dockerImageTag: $(Build.BuildId)

@@ -3,28 +3,35 @@ import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
 import { AppInsights } from 'applicationinsights-js';
 
+export interface SearchConfig {
+  account: string;
+  key: string;
+  index: string;
+}
+
+export interface CognitiveConfig {
+  region: string;
+  key: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ConfigService {
 
-  speechKey: string;
-  speechEndpoint: string;
-  speechRegion: string;
-  searchService: string;
-  searchKey: string;
-  textKey: string;
-  textEndpoint: string;
+  search: SearchConfig;
+  speech: CognitiveConfig;
+  text: CognitiveConfig;
 
   constructor(
     private http: HttpClient) { }
 
   load() {
-    return this.http.get<any>('https://methackstor.blob.core.windows.net/web/config.json?d=' + new Date().getTime())
+    return this.http.get<any>('assets/conf.json?' + new Date().getTime())
       .pipe(
         tap((resp) => {
           Object.keys(resp).forEach((x) => this[x] = resp[x]);
-          AppInsights.downloadAndSetup({ instrumentationKey: resp.telemetryKey });
+          AppInsights.downloadAndSetup({ instrumentationKey: resp.telemetry });
         }),
       );
   }

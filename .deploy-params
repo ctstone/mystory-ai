@@ -1,0 +1,8 @@
+LOCATION=eastus
+RESOURCE_GROUP=$PREFIX-storyteller
+ACR=${PREFIX}storyteller
+APP_SERVICE_PLAN=$PREFIX-storyteller-linux
+WEB_APP=$PREFIX-storyteller
+SEARCH=$PREFIX-storyteller-search
+SPEECH=$PREFIX-storyteller-speech
+TEXT=$PREFIX-storyteller-text

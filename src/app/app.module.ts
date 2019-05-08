@@ -10,6 +10,7 @@ import { SearchComponent } from './search/search.component';
 import { StoryComponent } from './story/story.component';
 import { ScrollDirective } from './shared/scroll.directive';
 import { AboutComponent } from './about/about.component';
+import { MetImageDirective } from './shared/met-image.directive';
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import { AboutComponent } from './about/about.component';
     StoryComponent,
     ScrollDirective,
     AboutComponent,
+    MetImageDirective,
   ],
   imports: [
     BrowserModule,
